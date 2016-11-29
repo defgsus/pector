@@ -23,3 +23,21 @@ and to use inplace operations as much as possible, get rid of the internal pytho
 
 I've started to write a C extension like this from the CPython side which was an interesting task
 but which is hard to sustain and doesn't teach me good python after all 
+
+### current state ###
+
+vec3 is almost ready and mat4 is implemented in basic. 
+I want to do some practical stuff to see if the interface works out
+
+finaly package should contain:
+vec2, vec3, vec4, mat3, mat4, quat
+
+and non-member funcs like:
+```python
+>>> from pector.functions import *
+>>> a = cross([1,2,3], [3,4,5])
+vec3(-3, 6, -3)
+>>> length([1,1,1])
+1.7320508075688772
+```
+
