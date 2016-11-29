@@ -69,7 +69,7 @@ class TestVec3(TestCase):
         self.assertEqual(abs(vec3((-1,-2,-3))), vec3((1,2,3)))
 
     def test_floor(self):
-        self.assertEqual(vec3((1.2,2.3,3.4)).floor(), vec3((1,2,3)))
+        self.assertEqual(vec3((1.2,2.3,3.4)).round(), vec3((1,2,3)))
 
     def test_add(self):
         self.assertEqual(vec3(1) + 2, vec3(3))
@@ -147,13 +147,29 @@ class TestVec3(TestCase):
         self.assertEqual(vec3((0,1,0)).cross((0,0,1)), (1,0,0))
 
     def test_rotate(self):
-        self.assertEqual(vec3((1,2,3)).rotate_x(90).floor(), vec3((1,-3,2)))
-        self.assertEqual(vec3((1,2,3)).rotate_y(90).floor(), vec3((3,2,-1)))
-        self.assertEqual(vec3((1,2,3)).rotate_z(90).floor(), vec3((-2,1,3)))
+        self.assertEqual(vec3((1,2,3)).rotate_x(90).round(), vec3((1,-3,2)))
+        self.assertEqual(vec3((1,2,3)).rotate_y(90).round(), vec3((3,2,-1)))
+        self.assertEqual(vec3((1,2,3)).rotate_z(90).round(), vec3((-2,1,3)))
 
-        self.assertEqual(vec3((1,2,3)).rotate_axis((1,0,0), 90).floor(), vec3((1,-3,2)))
-        self.assertEqual(vec3((1,2,3)).rotate_axis((0,1,0), 90).floor(), vec3((3,2,-1)))
-        self.assertEqual(vec3((1,2,3)).rotate_axis((0,0,1), 90).floor(), vec3((-2,1,3)))
+        self.assertEqual(vec3((1,2,3)).rotate_axis((1,0,0), 90).round(), vec3((1,-3,2)))
+        self.assertEqual(vec3((1,2,3)).rotate_axis((0,1,0), 90).round(), vec3((3,2,-1)))
+        self.assertEqual(vec3((1,2,3)).rotate_axis((0,0,1), 90).round(), vec3((-2,1,3)))
+
+    def test_rotated(self):
+        self.assertEqual(vec3((1,2,3)).rotated_x(90).round(), vec3((1,-3,2)))
+        self.assertEqual(vec3((1,2,3)).rotated_y(90).round(), vec3((3,2,-1)))
+        self.assertEqual(vec3((1,2,3)).rotated_z(90).round(), vec3((-2,1,3)))
+        self.assertEqual(vec3((2,-3,-1)).rotated_z(90).round(), vec3((3,2,-1)))
+
+        self.assertEqual(vec3((1,2,3)).rotated_axis((1,0,0), 90).round(), vec3((1,-3,2)))
+        self.assertEqual(vec3((1,2,3)).rotated_axis((0,1,0), 90).round(), vec3((3,2,-1)))
+        self.assertEqual(vec3((1,2,3)).rotated_axis((0,0,1), 90).round(), vec3((-2,1,3)))
+
+        self.assertEqual(vec3((1,2,3)).rotated_x(90).rotated_y(90).round(), vec3((2,-3,-1)))
+        self.assertEqual(vec3((1,2,3)).rotated_x(90).rotated_y(90).rotated_z(90).round(), vec3((3,2,-1)))
+
+        self.assertEqual(vec3((1,2,3)).rotated_axis((1,0,0), 90).rotated_axis((0,1,0), 90).rotated_axis((0,0,1), 90).round(),
+                         vec3((3,2,-1)))
 
     """
     def test_op_speed(self):
@@ -218,21 +234,31 @@ class TestMat4(TestCase):
         self.assertEqual( (mat4().translate((1,2,3)).translate((1,2,3)) * (3,3,3)), (5,7,9) )
 
     def test_set_rotate(self):
-        self.assertEqual( (mat4().set_rotate_x(90) * (1,2,3)).floor(), vec3((1,-3,2)) )
-        self.assertEqual( (mat4().set_rotate_y(90) * (1,2,3)).floor(), vec3((3,2,-1)) )
-        self.assertEqual( (mat4().set_rotate_z(90) * (1,2,3)).floor(), vec3((-2,1,3)) )
+        self.assertEqual( (mat4().set_rotate_x(90) * (1,2,3)).round(), vec3((1,-3,2)) )
+        self.assertEqual( (mat4().set_rotate_y(90) * (1,2,3)).round(), vec3((3,2,-1)) )
+        self.assertEqual( (mat4().set_rotate_z(90) * (1,2,3)).round(), vec3((-2,1,3)) )
 
-        self.assertEqual( (mat4().set_rotate_axis((1,0,0), 90) * (1,2,3)).floor(), vec3((1,-3,2)) )
-        self.assertEqual( (mat4().set_rotate_axis((0,1,0), 90) * (1,2,3)).floor(), vec3((3,2,-1)) )
-        self.assertEqual( (mat4().set_rotate_axis((0,0,1), 90) * (1,2,3)).floor(), vec3((-2,1,3)) )
+        self.assertEqual( (mat4().set_rotate_axis((1,0,0), 90) * (1,2,3)).round(), vec3((1,-3,2)) )
+        self.assertEqual( (mat4().set_rotate_axis((0,1,0), 90) * (1,2,3)).round(), vec3((3,2,-1)) )
+        self.assertEqual( (mat4().set_rotate_axis((0,0,1), 90) * (1,2,3)).round(), vec3((-2,1,3)) )
 
     def test_rotate(self):
-        self.assertEqual( (mat4().rotate_x(90) * (1,2,3)).floor(), vec3((1,-3,2)) )
-        self.assertEqual( (mat4().rotate_x(90).rotate_y(90) * (1,2,3)).floor(), vec3((2,-3,-1)) )
-        self.assertEqual( (mat4().rotate_x(90).rotate_y(90).rotate_z(90) * (1,2,3)).floor(), vec3((3,2,-1)) )
+        self.assertEqual( (mat4().rotate_x(90) * (1,2,3)).round(), vec3((1,-3,2)) )
+        self.assertEqual( (mat4().rotate_x(90).rotate_y(90) * (1,2,3)).round(), vec3((2,-3,-1)) )
+        self.assertEqual( (mat4().rotate_x(90).rotate_y(90).rotate_z(90) * (1,2,3)).round(), vec3((3,2,-1)) )
 
         self.assertEqual( (mat4().rotate_axis((1,0,0),90).rotate_axis((0,1,0), 90).rotate_axis((0,0,1), 90)
-                            * (1,2,3)).floor(), vec3((3,2,-1)) )
+                            * (1,2,3)).round(), vec3((3,2,-1)) )
+
+    def test_compare_rotate_vec(self):
+        v = vec3((1,2,3))
+        self.assertAlmostEquals( mat4().rotate_x(90) * v, v.rotated_x(90) )
+        self.assertAlmostEquals( mat4().rotate_y(90) * v, v.rotated_y(90) )
+        self.assertAlmostEquals( mat4().rotate_z(90) * v, v.rotated_z(90) )
+
+        self.assertAlmostEquals( mat4().rotate_z(90).rotate_y(-90) * v, v.rotated_z(90).rotated_y(-90) )
+        self.assertAlmostEquals( mat4().rotate_z(90).rotate_y(-90).rotated_x(90) * v,
+                                     v.rotated_z(90).rotated_y(-90).rotated_x(90) )
 
     def test_scale(self):
         self.assertEqual( (mat4().set_scale(2) * (1,2,3)), (2,4,6) )
