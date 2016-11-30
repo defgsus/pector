@@ -114,6 +114,8 @@ class mat4:
         return self._binary_operator_inplace(arg, lambda l, r: l % r)
 
 
+    # --- helper ---
+
     def _binary_operator(self, arg, op):
         if tools.is_number(arg):
             fother = float(arg)
@@ -162,14 +164,61 @@ class mat4:
             self.v[i + 12] = sv[12] * m[i + 0] + sv[13] * m[i + 4] + sv[14] * m[i + 8] + sv[15] * m[i + 12]
         return self
 
+    # ----- public API getter ------
+
     def copy(self):
+        """
+        Returns a copy of the matrix
+        :return: mat4
+        """
         return mat4(self)
 
+    def dot(self, arg):
+        """
+        Returns the dot product of self and other mat4
+        :param arg: float sequence of length 16
+        :return: float
+        >>> mat4(1).dot(mat4(2))
+        8.0
+        """
+        tools.check_float_sequence(arg, len(self))
+        return sum([x * float(arg[i]) for i, x in enumerate(self.v)])
+
+    def position(self):
+        """
+        Return translational (the last column) part as vec3
+        :return: vec3
+        >>> mat4().translated((2,3,4)).position()
+        vec3(2, 3, 4)
+        """
+        return vec3(self.v[12:15])
+
+    # ---- public API setter -----
+
     def set_identity(self, val=1.):
+        """
+        Sets the identity matrix
+        :param val: The identity value, default = 1.
+        :return: self
+        >>> mat4().set_identity()
+        mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1)
+        >>> mat4().set_identity(2)
+        mat4(2,0,0,0, 0,2,0,0, 0,0,2,0, 0,0,0,2)
+        """
         arg = tools.check_float_number(val)
         self.v = [arg, 0., 0., 0., 0., arg, 0., 0., 0., 0., arg, 0., 0., 0., 0., arg]
+        return self
 
     def set(self, arg):
+        """
+        Sets the content of the matrix
+        :param arg: either a float, to set the identity or a float sequence of length 16
+        :return: self
+        >>> mat4().set(1)
+        mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1)
+        >>> mat4().set((1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16))
+        mat4(1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)
+        """
         if tools.is_number(arg):
             arg = float(arg)
             self.v = [arg,0.,0.,0., 0.,arg,0.,0., 0.,0.,arg,0., 0.,0.,0.,arg]
@@ -181,32 +230,50 @@ class mat4:
         return self
 
     def set_position(self, arg3):
-        tools.check_float_sequence(arg, 3)
+        """
+        Sets the translation-part of the matrix which is the last column
+        :param arg3: a float sequence of length 3
+        :return: self
+        >>> mat4().set_position((2,3,4))
+        mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 2,3,4,1)
+        """
+        tools.check_float_sequence(arg3, 3)
         self.v[12] = float(arg3[0])
         self.v[13] = float(arg3[1])
         self.v[14] = float(arg3[2])
-
-    def dot(self, arg):
-        """
-        Dot product of self and other mat4
-        :param arg: float sequence of length 16
-        :return: float
-        """
-        tools.check_float_sequence(arg, len(self))
-        return sum([x * float(arg[i]) for i, x in enumerate(self.v)])
-
-    def position(self):
-        """
-        Return translational part as vec3
-        :return: vec3
-        """
-        return vec3(self.v[12:15])
+        return self
 
     def floor(self):
+        """
+        Applies the floor() function to all elements, INPLACE
+        :return: self
+        >>> mat4((.1,.2,.3,.4, .5,.6,.7,.8, .9,1.,1.1,1.2, 1.3,1.4,1.5,1.6)).floor()
+        mat4(0,0,0,0, 0,0,0,0, 0,1,1,1, 1,1,1,1)
+        >>> mat4((-.1,-.2,-.3,-.4, -.5,-.6,-.7,-.8, -.9,-1.,-1.1,-1.2, -1.3,-1.4,-1.5,-1.6)).floor()
+        mat4(-1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-2,-2, -2,-2,-2,-2)
+        """
         self.v = [math.floor(x) for x in self.v]
         return self
 
+    def round(self):
+        """
+        Applies floor(+.5) to all elements, INPLACE
+        :return: self
+        >>> mat4((.1,.2,.3,.4, .5,.6,.7,.8, .9,1.,1.1,1.2, 1.3,1.4,1.5,1.6)).round()
+        mat4(0,0,0,0, 1,1,1,1, 1,1,1,1, 1,1,2,2)
+        >>> mat4((-.1,-.2,-.3,-.4, -.5,-.6,-.7,-.8, -.9,-1.,-1.1,-1.2, -1.3,-1.4,-1.5,-1.6)).round()
+        mat4(0,0,0,0, 0,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-2)
+        """
+        self.v = [math.floor(x+.5) for x in self.v]
+        return self
+
     def transpose(self):
+        """
+        Exchanges the matrix columns and rows, INPLACE
+        :return: self
+        >>> mat4((1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)).transpose()
+        mat4(1,5,9,13, 2,6,10,14, 3,7,11,15, 4,8,12,16)
+        """
         self.v = [
             self.v[0], self.v[4], self.v[8], self.v[12],
             self.v[1], self.v[5], self.v[9], self.v[13],
@@ -214,30 +281,51 @@ class mat4:
             self.v[3], self.v[7], self.v[11], self.v[15]]
         return self
 
-    def transposed(self):
-        return self.copy().transpose()
 
-    def set_translate(self, arg):
-        tools.check_float_sequence(arg, 3)
+    def set_translate(self, arg3):
+        """
+        Initializes the matrix with a translation transform, INPLACE
+        :param arg3: a float sequence of lengh 3
+        :return: self
+        >>> mat4(1).set_translate((2,3,4))
+        mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 2,3,4,1)
+        """
+        tools.check_float_sequence(arg3, 3)
         self.set_identity()
-        self.v[12] = float(arg[0])
-        self.v[13] = float(arg[1])
-        self.v[14] = float(arg[2])
+        self.v[12] = float(arg3[0])
+        self.v[13] = float(arg3[1])
+        self.v[14] = float(arg3[2])
         return self
 
     def set_scale(self, arg):
+        """
+        Initializes the matrix with a scale transform, INPLACE
+        :param arg: either a float or a float sequence of length 3
+        :return: self
+        >>> mat4().set_scale(2)
+        mat4(2,0,0,0, 0,2,0,0, 0,0,2,0, 0,0,0,1)
+        >>> mat4().set_scale((2,3,4))
+        mat4(2,0,0,0, 0,3,0,0, 0,0,4,0, 0,0,0,1)
+        """
         if tools.is_number(arg):
             self.set(arg)
-            self.v[15] = 0.
+            self.v[15] = 1.
             return self
         tools.check_float_sequence(arg, 3)
         self.set_identity()
         self.v[0] = float(arg[0])
-        self.v[5] = float(arg[5])
-        self.v[10] = float(arg[10])
+        self.v[5] = float(arg[1])
+        self.v[10] = float(arg[2])
         return self
 
     def set_rotate_x(self, degree):
+        """
+        Initializes the matrix with a rotation transform, INPLACE
+        :param degree: degrees of rotation
+        :return: self
+        >>> mat4().set_rotate_x(90).round()
+        mat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1)
+        """
         degree *= const.DEG_TO_TWO_PI
         sa = math.sin(degree)
         ca = math.cos(degree)
@@ -249,6 +337,13 @@ class mat4:
         return self
 
     def set_rotate_y(self, degree):
+        """
+        Initializes the matrix with a rotation transform, INPLACE
+        :param degree: degrees of rotation
+        :return: self
+        >>> mat4().set_rotate_y(90).round()
+        mat4(0,0,-1,0, 0,1,0,0, 1,0,0,0, 0,0,0,1)
+        """
         degree *= const.DEG_TO_TWO_PI
         sa = math.sin(degree)
         ca = math.cos(degree)
@@ -260,6 +355,13 @@ class mat4:
         return self
 
     def set_rotate_z(self, degree):
+        """
+        Initializes the matrix with a rotation transform, INPLACE
+        :param degree: degrees of rotation
+        :return: self
+        >>> mat4().set_rotate_z(90).round()
+        mat4(0,1,0,0, -1,0,0,0, 0,0,1,0, 0,0,0,1)
+        """
         degree *= const.DEG_TO_TWO_PI
         sa = math.sin(degree)
         ca = math.cos(degree)
@@ -271,6 +373,14 @@ class mat4:
         return self
 
     def set_rotate_axis(self, axis, degree):
+        """
+        Initializes the matrix with a rotation transform, INPLACE
+        :param axis: float sequence of length 3, must be normalized!
+        :param degree: degrees of rotation
+        :return: self
+        >>> mat4().set_rotate_axis((1,0,0), 90).round()
+        mat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1)
+        """
         tools.check_float_sequence(axis, 3)
         degree *= const.DEG_TO_TWO_PI
         si = math.sin(degree)
@@ -329,6 +439,16 @@ class mat4:
         self._multiply_inplace(m)
         return self
 
+    # ------ value-copying methods -------
+
+    def transposed(self):
+        """
+        Returns a mat4 with columns and rows interchanged
+        :return: self
+        >>> mat4((1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)).transposed()
+        mat4(1,5,9,13, 2,6,10,14, 3,7,11,15, 4,8,12,16)
+        """
+        return self.copy().transpose()
 
     def translated(self, arg3):
         return self.copy().translate(arg3)

@@ -277,6 +277,34 @@ class vec3:
         self.v = [math.floor(x+.5) for x in self.v]
         return self
 
+    def normalize(self):
+        """
+        Normalizes the vector, e.g. makes it length 1, INPLACE
+        :return: self
+        >>> vec3((1,1,0)).normalize()
+        vec3(0.707107, 0.707107, 0)
+        >>> vec3((1,2,3)).normalize().length() == 1
+        True
+        """
+        l = self.length()
+        self.v = [x / l for x in self.v]
+        return self
+
+    def normalize_safe(self):
+        """
+        Normalizes the vector, e.g. makes it length 1, INPLACE
+        If the length is zero, this call does nothing
+        :return: self
+        >>> vec3((1,1,0)).normalize_safe()
+        vec3(0.707107, 0.707107, 0)
+        >>> vec3(0).normalize_safe()
+        vec3(0, 0, 0)
+        """
+        l = self.length()
+        if not l == 0.:
+            self.v = [x / l for x in self.v]
+        return self
+
     def cross(self, arg3):
         """
         Makes this vector the cross-product of this and arg3, INPLACE
@@ -296,6 +324,19 @@ class vec3:
         self.z = self.x * arg3[1] - self.y * arg3[0]
         self.x = x
         self.y = y
+        return self
+
+    def reflect(self, norm):
+        """
+        Reflects this vector on a plane with given normal, INPLACE
+        :param norm: float sequence of length 3
+        :return: self
+        Example: suppose ray coming from top-left, going down on a flat plane
+        >>> vec3((2,-1,0)).reflect((0,1,0)).round()
+        vec3(2, 1, 0)
+        """
+        tools.check_float_sequence(norm, 3)
+        self.set(self - vec3(norm) * self.dot(norm) * 2.)
         return self
 
     def rotate_x(self, degree):
@@ -400,6 +441,29 @@ class vec3:
         """
         return vec3(self.v).round()
 
+    def normalized(self):
+        """
+        Returns normalized vector, e.g. makes it length 1.
+        :return: self
+        >>> vec3((1,1,0)).normalized()
+        vec3(0.707107, 0.707107, 0)
+        >>> vec3((1,2,3)).normalized().length() == 1
+        True
+        """
+        return vec3(self.v).normalize()
+
+    def normalized_safe(self):
+        """
+        Returns normalized vector, e.g. makes it length 1.
+        Does nothing if length is 0.
+        :return: self
+        >>> vec3((1,1,0)).normalized_safe()
+        vec3(0.707107, 0.707107, 0)
+        >>> vec3(0).normalized_safe()
+        vec3(0, 0, 0)
+        """
+        return vec3(self.v).normalize_safe()
+
     def crossed(self, arg3):
         """
         Returns the cross-product of this vector and arg3
@@ -415,11 +479,24 @@ class vec3:
         """
         return vec3(self.v).cross(arg3)
 
+    def reflected(self, norm):
+        """
+        Returns the this vector reflected on a plane with given normal
+        :param norm: float sequence of length 3
+        :return: self
+        Example: suppose ray coming from top-left, going down on a flat plane
+        >>> vec3((2,-1,0)).reflected((0,1,0)).rounded()
+        vec3(2, 1, 0)
+        """
+        return vec3(self.v).reflect(norm)
+
     def rotated_x(self, degree):
         """
         Returns this vector rotated around the x-axis
         :param degree: the degrees [0., 360.]
         :return: vec3
+        >>> vec3((1,2,3)).rotated_x(90).rounded()
+        vec3(1, -3, 2)
         """
         return vec3(self).rotate_x(degree)
 
@@ -428,6 +505,8 @@ class vec3:
         Returns this vector rotated around the y-axis
         :param degree: the degrees [0., 360.]
         :return: vec3
+        >>> vec3((1,2,3)).rotated_y(90).rounded()
+        vec3(3, 2, -1)
         """
         return vec3(self).rotate_y(degree)
 
@@ -436,6 +515,8 @@ class vec3:
         Returns this vector rotated around the z-axis
         :param degree: the degrees [0., 360.]
         :return: vec3
+        >>> vec3((1,2,3)).rotated_z(90).rounded()
+        vec3(-2, 1, 3)
         """
         return vec3(self).rotate_z(degree)
 
@@ -445,6 +526,8 @@ class vec3:
         :param axis: float sequence of length 3
         :param degree: the degrees [0., 360.]
         :return: vec3
+        >>> vec3((1,2,3)).rotated_axis((1,0,0), 90) == vec3((1,2,3)).rotated_x(90)
+        True
         """
         return vec3(self).rotate_axis(axis, degree)
 

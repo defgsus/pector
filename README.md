@@ -29,8 +29,10 @@ but which is hard to sustain and doesn't teach me good python after all
 vec3 is almost ready and mat4 is implemented in basic. 
 I want to do some practical stuff to see if the interface works out
 
-finaly package should contain:
+finally package should contain:
 vec2, vec3, vec4, mat3, mat4, quat
+
+all kinds of rotations, transformations, projections, frustums, etc...
 
 and non-member funcs like:
 ```python
