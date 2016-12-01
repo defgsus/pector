@@ -1,5 +1,7 @@
-import math, tools, const
-from vec3 import vec3
+import math
+from pector import tools, const
+from pector.vec3 import vec3
+
 
 class mat4:
     """
@@ -121,7 +123,7 @@ class mat4:
             fother = float(arg)
             return mat4([op(x, fother) for x in self.v])
         tools.check_float_sequence(arg, len(self))
-        return vec3([op(x, float(arg[i])) for i, x in enumerate(self.v)])
+        return mat4([op(x, float(arg[i])) for i, x in enumerate(self.v)])
 
     def _binary_operator_inplace(self, arg, op):
         if tools.is_number(arg):

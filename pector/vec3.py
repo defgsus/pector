@@ -1,4 +1,5 @@
-import math, tools, const
+import math
+from pector import tools, const
 
 class vec3:
     """

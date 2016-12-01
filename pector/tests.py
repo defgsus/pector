@@ -190,6 +190,9 @@ class TestMat4(TestCase):
     def test_equal(self):
         self.assertEqual(mat4(1), (1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1))
 
+    def test_aritm(self):
+        self.assertEqual(mat4(1)+mat4(2), mat4(3))
+
     def test_transpose(self):
         self.assertEqual(mat4((1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)).transpose(),
                          mat4((1,5,9,13, 2,6,10,14, 3,7,11,15, 4,8,12,16)))
