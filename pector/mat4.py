@@ -1,6 +1,5 @@
 import math
 from pector import tools, const
-from pector.vec3 import vec3
 
 
 class mat4:
@@ -283,6 +282,13 @@ class mat4:
             self.v[3], self.v[7], self.v[11], self.v[15]]
         return self
 
+    def invert_simple(self):
+        """
+        Inverts a uniformly-scaled, non-skewed matrix, INPLACE
+        :return: self
+        """
+        self.v = self.invert_simple().v
+        return self
 
     def set_translate(self, arg3):
         """
@@ -452,6 +458,33 @@ class mat4:
         """
         return self.copy().transpose()
 
+    def inverted_simple(self):
+        """
+        Returns inverse of a uniformly-scaled, non-skewed matrix.
+        :return: mat4
+        """
+        m = mat4()
+        m.v[0] = self.v[0]
+        m.v[1] = self.v[4]
+        m.v[2] = self.v[8]
+        m.v[3] = self.v[3]
+
+        m.v[4] = self.v[1]
+        m.v[5] = self.v[5]
+        m.v[6] = self.v[9]
+        m.v[7] = self.v[7]
+
+        m.v[8] = self.v[2]
+        m.v[9] = self.v[6]
+        m.v[10] = self.v[10]
+        m.v[11] = self.v[11]
+
+        m.v[12] = -(self.v[12] * self.v[0]) - (self.v[13] * self.v[1]) - (self.v[14] * self.v[2])
+        m.v[13] = -(self.v[12] * self.v[4]) - (self.v[13] * self.v[5]) - (self.v[14] * self.v[6])
+        m.v[14] = -(self.v[12] * self.v[8]) - (self.v[13] * self.v[9]) - (self.v[14] * self.v[10])
+        m.v[15] = self.v[15]
+        return m
+
     def translated(self, arg3):
         return self.copy().translate(arg3)
 
@@ -469,6 +502,9 @@ class mat4:
 
     def rotated_axis(self, axis, degree):
         return self.copy().rotate_axis(axis, degree)
+
+
+from pector.vec3 import vec3
 
 if __name__ == "__main__":
     import doctest
