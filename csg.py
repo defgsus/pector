@@ -1,6 +1,4 @@
-from pector.vec3 import vec3
-from pector.mat4 import mat4
-from pector import tools
+from pector import vec3, mat4, tools
 
 INFINITY = 1.0e+20
 
@@ -20,8 +18,11 @@ class CsgBase:
         return self._transform
     @transform.setter
     def transform(self, mat):
+        self.set_transform(mat)
+    def set_transform(self, mat):
         self._transform = mat4(mat)
         self._itransform = self._transform.inverted_simple()
+        return self
 
     def pos_to_local(self, pos):
         return self._itransform * pos
@@ -86,6 +87,24 @@ class Difference(Container):
             d = max(d, -self.objects[i].get_distance(pos))
         return d
 
+class Intersection(Container):
+    def __init__(self, objects=[], transform=mat4()):
+        super(Intersection, self).__init__(name="intersection", objects=objects, transform=transform)
+
+    def __unicode__(self):
+        return "Intersection(%s)" % self.objects
+
+    def copy(self):
+        return Intersection([o.copy() for o in self.objects], transform=self.transform)
+
+    def get_distance(self, pos):
+        pos = self.pos_to_local(pos)
+        if not self.objects:
+            return INFINITY
+        d = self.objects[0].get_distance(pos)
+        for i in range(1, len(self.objects)):
+            d = max(d, self.objects[i].get_distance(pos))
+        return d
 
 
 
@@ -154,7 +173,7 @@ class Cylinder(Primitive):
         return "Cylinder(radius=%g, axis=%d, transform=%s)" % (self.radius, self.axis, self.transform)
 
     def copy(self):
-        return Radius(radius=self.radius, axis=self.axis, transform=self.transform)
+        return Cylinder(radius=self.radius, axis=self.axis, transform=self.transform)
 
     def get_distance(self, pos):
         pos = self.pos_to_local(pos)
@@ -183,18 +202,32 @@ if __name__ == "__main__":
 
     #c = Difference([s, Sphere(radius=0.5, transform=mat4().translate((1.,0,0)))])
 
+    stripes = Repeat(
+            Cylinder(radius=.2, axis=1)#, transform=mat4().rotate_z(22.5).translate((2,0,0)))
+            , repeat=vec3((1., 0, 0))
+            , transform=mat4().rotate_z(45.)
+        )
     c = Union([
         Difference([
             Cylinder(radius=1, axis=2),
             Cylinder(radius=.6, axis=2, transform=mat4().translate((0,0,0)))
         ]),
-        Repeat(
-            Cylinder(radius=.2, axis=1)#, transform=mat4().rotate_z(22.5).translate((2,0,0)))
-            , repeat=(1.5,.3,0)
-            , transform=mat4().rotate_z(45.)
-        )
+        Intersection([
+            stripes.copy(),
+            stripes.copy().set_transform(stripes.transform.rotate_y(180.))
+        ])
     ]# , transform=mat4().translate((1,0,0))
     )
     print(c)
     print(c.get_distance((2,0,0)))
-    print_slice(c, size=(80, 10))
+
+    try:
+        import sys
+        size = (int(sys.argv[1]), int(sys.argv[2]))
+    except BaseException:
+        size = (80, 10)
+    try:
+        scale = float(sys.argv[3])
+    except BaseException:
+        scale = .1
+    print_slice(c, size=size, scale=scale)
