@@ -7,8 +7,11 @@ class TreeNode:
         self._node_parent = None
         self._can_have_nodes = True
 
-    def __repr__(self):
+    def __str__(self):
         return 'TreeNode("%s")' % self._node_name
+
+    def __repr__(self):
+        return self.__str__()
 
     @property
     def node_name(self):
@@ -32,7 +35,7 @@ class TreeNode:
         if node in this_nodes:
             raise ValueError("Can not add the same node twice: %s" % repr(node))
         if this_nodes & node.node_root.nodes_as_set():
-            raise ValueError("Can not add the node because it contains a mutual node")
+            raise ValueError("Can not add the node because it's tree contains a mutual node")
         self._nodes.append(node)
         node._node_parent = self
 
@@ -71,6 +74,7 @@ class TreeNode:
                 subprefix = "%s\\-" % prefix
             s += self.nodes[i].render_node_tree(subprefix)
         return s
+
 
 
 class TreeNodeVisitor:

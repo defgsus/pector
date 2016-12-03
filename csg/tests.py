@@ -10,7 +10,8 @@ class TestTreeNode(TestCase):
         def visit(self, node):
             self.s += node.node_name + ", "
 
-    def create_tree_1(self):
+    @staticmethod
+    def create_tree_1():
         """
         A
         +-B
@@ -45,7 +46,8 @@ class TestTreeNode(TestCase):
         i.add_node(j)
         return a
 
-    def create_tree_2(self):
+    @staticmethod
+    def create_tree_2():
         """
         A
         +-B
@@ -119,7 +121,6 @@ class TestTreeNode(TestCase):
 """
         self.assertEqual(a.render_node_tree(), a_str)
         self.assertEqual(b.render_node_tree(), b_str)
-
 
     def test_traversal_depth_first(self):
         v = self.NameVisitor()
