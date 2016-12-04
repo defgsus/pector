@@ -194,6 +194,29 @@ class mat4:
         """
         return vec3(self.v[12:15])
 
+    def get_3x3(self):
+        """
+        Returns the top-left 3x3 matrix
+        :return: *CURRENTLY* a list of floats
+        """
+        return [self.v[0], self.v[1], self.v[2],
+                self.v[4], self.v[5], self.v[6],
+                self.v[8], self.v[9], self.v[10]]
+
+    def has_translation(self):
+        """
+        Returns True if the matrix contains a translation, False otherwise
+        :return: bool
+        """
+        return not (self.v[12] == 0. and self.v[13] == 0. and self.v[14] == 0.)
+
+    def has_rotation(self):
+        """
+        Returns True if the matrix contains a rotation, scale or skew transform, False otherwise
+        :return: bool
+        """
+        return not self.get_3x3() == [1., 0., 0., 0., 1., 0., 0., 0., 1.]
+
     # ---- public API setter -----
 
     def set_identity(self, val=1.):

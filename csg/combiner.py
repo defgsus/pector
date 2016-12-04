@@ -1,5 +1,5 @@
 from .csg_base import *
-
+from .glsl import to_glsl
 
 class CombineBase(CsgBase):
     def __init__(self, name, objects=[], transform=mat4()):
@@ -10,6 +10,27 @@ class CombineBase(CsgBase):
     def __str__(self):
         return "CombineBase(\"%s\", %s)" % (self.node_name, self.nodes)
 
+    def get_glsl_inline(self, pos):
+        pos = self.get_glsl_transform(pos)
+        if len(self.nodes) == 0:
+            return "%s" % to_glsl(INFINITY)
+        if len(self.nodes) == 1:
+            return self.nodes[0].get_glsl(pos)
+        if len(self.nodes) == 2:
+            return self.get_glsl_operation() % (self.nodes[0].get_glsl(pos), self.nodes[1].get_glsl(pos))
+        return None
+
+    def get_glsl_function_body(self):
+        if len(self.nodes) <= 2:
+            return None
+        pos = self.get_glsl_transform("pos")
+        code = "float d = %s;\n" % self.nodes[0].get_glsl(pos)
+        for i in range(1, len(self.nodes)):
+            code += ("d = %s;\n" % self.get_glsl_operation()) % ("d", self.nodes[i].get_glsl(pos))
+        return code
+
+    def get_glsl_operation(self):
+        return None
 
 
 class Union(CombineBase):
@@ -29,20 +50,8 @@ class Union(CombineBase):
             d = min(d, i.get_distance(pos))
         return d
 
-    def get_glsl_inline(self):
-        if len(self.nodes) == 1:
-            return self.nodes[0].get_glsl()
-        if len(self.nodes) == 2:
-            return "min(%s, %s)" % (self.nodes[0].get_glsl(), self.nodes[1].get_glsl())
-        return None
-
-    def get_glsl_function(self):
-        if len(self.nodes) <= 2:
-            return None
-        code = "float d = %s;\n" % self.nodes[0].get_glsl()
-        for i in range(1, len(self.nodes)):
-            code += "d = min(d, %s);\n" % self.nodes[i].get_glsl()
-        return code
+    def get_glsl_operation(self):
+        return "min(%s, %s)"
 
 
 class Difference(CombineBase):
@@ -64,20 +73,8 @@ class Difference(CombineBase):
             d = max(d, -self.nodes[i].get_distance(pos))
         return d
 
-    def get_glsl_inline(self):
-        if len(self.nodes) == 1:
-            return self.nodes[0].get_glsl()
-        if len(self.nodes) == 2:
-            return "max(%s, -(%s))" % (self.nodes[0].get_glsl(), self.nodes[1].get_glsl())
-        return None
-
-    def get_glsl_function(self):
-        if len(self.nodes) <= 2:
-            return None
-        code = "float d = %s;\n" % self.nodes[0].get_glsl()
-        for i in range(1, len(self.nodes)):
-            code += "d = max(d, -(%s));\n" % self.nodes[i].get_glsl()
-        return code
+    def get_glsl_operation(self):
+        return "max(%s, -(%s))"
 
 
 class Intersection(CombineBase):
@@ -99,19 +96,7 @@ class Intersection(CombineBase):
             d = max(d, self.nodes[i].get_distance(pos))
         return d
 
-    def get_glsl_inline(self):
-        if len(self.nodes) == 1:
-            return self.nodes[0].get_glsl()
-        if len(self.nodes) == 2:
-            return "max(%s, %s)" % (self.nodes[0].get_glsl(), self.nodes[1].get_glsl())
-        return None
-
-    def get_glsl_function(self):
-        if len(self.nodes) <= 2:
-            return None
-        code = "float d = %s;\n" % self.nodes[0].get_glsl()
-        for i in range(1, len(self.nodes)):
-            code += "d = max(d, %s);\n" % self.nodes[i].get_glsl()
-        return code
+    def get_glsl_operation(self):
+        return "max(%s, %s)"
 
 

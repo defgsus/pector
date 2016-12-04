@@ -62,7 +62,17 @@ def csg_1():
     )
     return c
 
+def csg_2():
+    return Union([
+        Union([
+            Union([Sphere()
+                    ]
+                    , transform=mat4().translate((0, 0, 1)))
+                ], transform=mat4().translate((0, 1, 0))
+            )
+        ], transform=mat4().translate((1, 0, 0))
+    )
 
-c = csg_1()
+c = csg_2()
 print( csg.glsl.render_glsl(c) )
 #render(c)

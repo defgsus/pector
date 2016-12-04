@@ -32,11 +32,10 @@ class Repeat(DeformBase):
                 p[i] = (p[i] + r*.5) % r - r*.5
         return self.contained_object().get_distance(p)
 
-
-    def get_glsl_inline(self):
+    def get_glsl_inline(self, pos):
         return None
 
-    def get_glsl_function(self):
+    def get_glsl_function_body(self):
         code = ""
         for i in range(3):
             r = self.repeat[i]
@@ -46,5 +45,8 @@ class Repeat(DeformBase):
                     "m": to_glsl(r),
                     "h": to_glsl(r*.5),
                 }
-        code += "return %s;" % self.contained_object().get_glsl()
+        pos = self.get_glsl_transform("pos")
+        if not pos == "pos":
+            code += "pos = %s;\n" % pos
+        code += "return %s;" % self.contained_object().get_glsl("pos")
         return code

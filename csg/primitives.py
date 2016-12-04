@@ -25,8 +25,9 @@ class Sphere(Primitive):
     def get_distance(self, pos):
         return self.pos_to_local(pos).length() - self.radius
 
-    def get_glsl_inline(self):
-        return "length(pos) - %s" % (to_glsl(self.radius))
+    def get_glsl_inline(self, pos):
+        pos = self.get_glsl_transform(pos)
+        return "length(%s) - %s" % (pos, to_glsl(self.radius))
 
 
 class Tube(Primitive):
@@ -48,11 +49,12 @@ class Tube(Primitive):
         pos[self.axis] = 0.
         return pos.length() - self.radius
 
-    def get_glsl_inline(self):
+    def get_glsl_inline(self, pos):
+        pos = self.get_glsl_transform(pos)
         swizz = "yz"
         if self.axis == 1:
             swizz = "xz"
         elif self.axis == 2:
             swizz = "xy"
-        return "length(pos.%s) - %s" % (swizz, to_glsl(self.radius))
+        return "length(%s.%s) - %s" % (pos, swizz, to_glsl(self.radius))
 

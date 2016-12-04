@@ -1,6 +1,6 @@
 from pector import vec3, mat4, tools
 from .treenode import TreeNode
-
+from .glsl import to_glsl
 
 INFINITY = 1.0e+20
 
@@ -10,18 +10,28 @@ class GlslBase:
     def get_glsl_function_name(self):
         return "%s_%s" % (self.node_name, str(self.id))
 
-    def get_glsl_function(self):
+    def get_glsl_function_body(self):
         return None
 
-    def get_glsl_inline(self):
+    def get_glsl_inline(self, pos):
         return None
 
-    def get_glsl(self):
+    def get_glsl(self, pos):
         """Returns either get_glsl_inline() or a call to get_glsl_function_name()"""
-        inl = self.get_glsl_inline()
+        inl = self.get_glsl_inline(pos)
         if inl:
             return inl
-        return "%s(pos)" % self.get_glsl_function_name()
+        return "%s(%s)" % (self.get_glsl_function_name(), pos)
+
+    def get_glsl_transform(self, pos):
+        if self.has_transform:
+            if not self.transform.has_translation():
+                pos = "(%s * %s)" % (to_glsl(self.transform.get_3x3()), pos)
+            elif not self.transform.has_rotation():
+                pos = "(%s + %s)" % (pos, to_glsl(self.transform.position()))
+            else:
+                pos = "(%s * vec4(%s,1.)).xyz" % (to_glsl(self.transform), pos)
+        return pos
 
 
 

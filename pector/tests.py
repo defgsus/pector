@@ -192,6 +192,18 @@ class TestMat4(TestCase):
 
     def test_aritm(self):
         self.assertEqual(mat4(1)+mat4(2), mat4(3))
+        self.assertEqual(mat4(2)-mat4(1), mat4(1))
+
+    def test_has_translation(self):
+        self.assertFalse(mat4(1).has_translation())
+        self.assertFalse(mat4(2).has_translation())
+        self.assertFalse(mat4(1).rotate_axis((1, 2, 3), 23.).has_translation())
+        self.assertTrue(mat4(1).translate((1,2,3)).has_translation())
+
+    def test_has_rotation(self):
+        self.assertFalse(mat4(1).has_rotation())
+        self.assertFalse(mat4(1).translate((1, 2, 3)).has_rotation())
+        self.assertTrue(mat4(1).rotate_x(0.01).has_rotation())
 
     def test_transpose(self):
         self.assertEqual(mat4((1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)).transpose(),
