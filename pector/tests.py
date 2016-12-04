@@ -11,10 +11,15 @@ class TestVec3(TestCase):
         self.assertEqual(str(vec3()), "vec3(0, 0, 0)")
         self.assertEqual(str(vec3(1)), "vec3(1, 1, 1)")
         self.assertEqual(str(vec3("5")), "vec3(5, 5, 5)")
+        self.assertEqual(str(vec3(1,2)), "vec3(1, 2, 0)")
+        self.assertEqual(str(vec3(1,2,3)), "vec3(1, 2, 3)")
+        self.assertEqual(str(vec3("1","2","3")), "vec3(1, 2, 3)")
         self.assertEqual(str(vec3((1,))), "vec3(1, 0, 0)")
         self.assertEqual(str(vec3((1,2))), "vec3(1, 2, 0)")
         self.assertEqual(str(vec3((1,2,3))), "vec3(1, 2, 3)")
         self.assertEqual(str(vec3(("1","2","3"))), "vec3(1, 2, 3)")
+        with self.assertRaises(TypeError):
+            vec3(1, 2, 3, 4)
         with self.assertRaises(TypeError):
             vec3((1, 2, 3, 4))
         with self.assertRaises(TypeError):
@@ -32,9 +37,9 @@ class TestVec3(TestCase):
         self.assertFalse( vec3(1) == (1, 1) )
 
     def test_properties(self):
-        self.assertEqual(vec3((1,2,3)).x, 1)
-        self.assertEqual(vec3((1,2,3)).y, 2)
-        self.assertEqual(vec3((1,2,3)).z, 3)
+        self.assertEqual(vec3(1,2,3).x, 1)
+        self.assertEqual(vec3(1,2,3).y, 2)
+        self.assertEqual(vec3(1,2,3).z, 3)
         a = vec3()
         a.x = 5
         self.assertEqual(a, (5,0,0))
@@ -54,42 +59,42 @@ class TestVec3(TestCase):
     def test_setitem(self):
         a = vec3(0)
         a[0] = 1
-        self.assertEqual(a, vec3((1,0,0)))
+        self.assertEqual(a, vec3(1,0,0))
         a[1] = 2
-        self.assertEqual(a, vec3((1,2,0)))
+        self.assertEqual(a, vec3(1,2,0))
         a[2] = 3
-        self.assertEqual(a, vec3((1,2,3)))
+        self.assertEqual(a, vec3(1,2,3))
         with self.assertRaises(IndexError):
             a[3] = 1
 
     def test_iter(self):
-        self.assertEqual([x for x in vec3((1,2,3))], [1,2,3])
+        self.assertEqual([x for x in vec3(1,2,3)], [1,2,3])
 
     def test_abs(self):
-        self.assertEqual(abs(vec3((-1,-2,-3))), vec3((1,2,3)))
+        self.assertEqual(abs(vec3(-1,-2,-3)), vec3(1,2,3))
 
     def test_floor(self):
-        self.assertEqual(vec3((1.4,2.5,3.6)).floor(), vec3((1,2,3)))
-        self.assertEqual(vec3((-1.4,-2.5,-3.6)).floor(), vec3((-2,-3,-4)))
+        self.assertEqual(vec3(1.4,2.5,3.6).floor(), vec3(1,2,3))
+        self.assertEqual(vec3(-1.4,-2.5,-3.6).floor(), vec3(-2,-3,-4))
 
     def test_round(self):
-        self.assertEqual((0, 0, 1), vec3((0.49, 0.5, 0.51)).round())
-        self.assertEqual((0, 0, -1), vec3((-0.49, -0.5, -0.51)).round())
-        self.assertEqual((0.5, 0.5, 0.5), vec3((0.49, 0.5, 0.51)).round(1))
-        self.assertEqual((-0.5, -0.5, -0.5), vec3((-0.49, -0.5, -0.51)).round(1))
+        self.assertEqual((0, 0, 1), vec3(0.49, 0.5, 0.51).round())
+        self.assertEqual((0, 0, -1), vec3(-0.49, -0.5, -0.51).round())
+        self.assertEqual((0.5, 0.5, 0.5), vec3(0.49, 0.5, 0.51).round(1))
+        self.assertEqual((-0.5, -0.5, -0.5), vec3(-0.49, -0.5, -0.51).round(1))
 
     def test_add(self):
         self.assertEqual(vec3(1) + 2, vec3(3))
         self.assertEqual(vec3(1) + vec3(2), vec3(3))
-        self.assertEqual(vec3((1,2,3)) + vec3((2,3,4)), vec3((3,5,7)))
+        self.assertEqual(vec3(1,2,3) + vec3(2,3,4), vec3(3,5,7))
         self.assertEqual(vec3(1) + vec3(2), vec3(3))
-        self.assertEqual(vec3(1) + [1,2,3], vec3((2,3,4)))
-        self.assertEqual(vec3(1) + ["1","2","3"], vec3((2,3,4)))
+        self.assertEqual(vec3(1) + [1,2,3], vec3(2,3,4))
+        self.assertEqual(vec3(1) + ["1","2","3"], vec3(2,3,4))
 
         self.assertEqual(2 + vec3(1), vec3(3))
         self.assertEqual("2" + vec3(1), vec3(3))
-        self.assertEqual([1,2,3] + vec3(1), vec3((2,3,4)))
-        self.assertEqual(["1","2","3"] + vec3(1), vec3((2,3,4)))
+        self.assertEqual([1,2,3] + vec3(1), vec3(2,3,4))
+        self.assertEqual(["1","2","3"] + vec3(1), vec3(2,3,4))
 
         with self.assertRaises(TypeError):
             vec3() + [1,2]
@@ -191,6 +196,8 @@ class TestMat4(TestCase):
     def test_assignment(self):
         self.assertEqual(str(mat4()), "mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1)")
         self.assertEqual(str(mat4(2)), "mat4(2,0,0,0, 0,2,0,0, 0,0,2,0, 0,0,0,2)")
+        self.assertEqual(str(mat4(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)),
+                         "mat4(1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)")
         self.assertEqual(str(mat4((1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16))),
                          "mat4(1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)")
 
@@ -263,8 +270,8 @@ class TestMat4(TestCase):
         self.assertEqual(a, mat4(.5))
 
     def test_mat4_x_vec3(self):
-        self.assertEqual(mat4(1) * (1,2,3), vec3((1,2,3)))
-        self.assertEqual(mat4(2) * (1,2,3), vec3((2,4,6)))
+        self.assertEqual(mat4(1) * (1,2,3), vec3(1,2,3))
+        self.assertEqual(mat4(2) * (1,2,3), vec3(2,4,6))
 
     def test_set_translate(self):
         self.assertEqual( (mat4().set_translate((1,2,3)) * (3,3,3)), (4,5,6))

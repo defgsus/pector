@@ -6,8 +6,11 @@ class mat4:
     """
     4x4 anisotropic matrix - column-major order
     """
-    def __init__(self, arg=None):
-        self.set(1. if arg is None else arg)
+    def __init__(self, *arg):
+        if arg is None:
+            self.set(1.)
+        else:
+            self.set(*arg)
 
     def __unicode__(self):
         r = "mat4("
@@ -233,16 +236,24 @@ class mat4:
         self.v = [arg, 0., 0., 0., 0., arg, 0., 0., 0., 0., arg, 0., 0., 0., 0., arg]
         return self
 
-    def set(self, arg):
+    def set(self, *arg):
         """
         Sets the content of the matrix
         :param arg: either a float, to set the identity or a float sequence of length 16
         :return: self
         >>> mat4().set(1)
         mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1)
+        >>> mat4().set(1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)
+        mat4(1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)
         >>> mat4().set((1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16))
         mat4(1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)
         """
+        if not arg:
+            arg = 1.
+        else:
+            if len(arg) == 1:
+                arg = arg[0]
+
         if tools.is_number(arg):
             arg = float(arg)
             self.v = [arg,0.,0.,0., 0.,arg,0.,0., 0.,0.,arg,0., 0.,0.,0.,arg]

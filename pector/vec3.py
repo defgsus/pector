@@ -9,11 +9,11 @@ class vec3:
     typically of length 3 as well, containing float-convertible elements
     """
 
-    def __init__(self, arg=None):
-        if arg is None:
+    def __init__(self, *arg):
+        if not arg:
             self.v = [0., 0., 0.]
             return
-        self.set(arg)
+        self.set(*arg)
 
     def __unicode__(self):
         return "vec3(%g, %g, %g)" % (self.v[0], self.v[1], self.v[2])
@@ -161,26 +161,35 @@ class vec3:
 
     # --- public API ---
 
-    def set(self, arg):
+    def set(self, *arg):
         """
         Set the values of this vector
-        :param arg: float number or sequence
+        :param arg: float number(s) or sequence
         :return: self
 
         >>> vec3(1)
         vec3(1, 1, 1)
+        >>> vec3(1,2)
+        vec3(1, 2, 0)
+        >>> vec3(1,2,3)
+        vec3(1, 2, 3)
         >>> vec3((1,2))
         vec3(1, 2, 0)
         >>> vec3([1,2,3])
         vec3(1, 2, 3)
         """
-        if tools.is_number(arg):
-            arg = float(arg)
-            self.v = [arg, arg, arg]
-            return self
+        if len(arg) == 1:
+            arg = arg[0]
 
+            if tools.is_number(arg):
+                arg = float(arg)
+                self.v = [arg, arg, arg]
+                return self
+
+        self._set_from_seq(arg)
+
+    def _set_from_seq(self, arg):
         tools.check_float_sequence(arg)
-
         if len(arg) > len(self):
             raise TypeError("Sequence %s with length %d is too long for %s" % (type(arg), len(arg), type(self)))
 
@@ -191,6 +200,7 @@ class vec3:
         self.v = [x for x in arg]
         for i in range(len(self) - len(arg)):
             self.v.append(0.)
+
 
     # ----- getter -----
 
