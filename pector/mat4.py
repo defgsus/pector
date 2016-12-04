@@ -441,41 +441,97 @@ class mat4:
 
 
     def translate(self, arg3):
+        """
+        Adds a translation to the current matrix, INPLACE
+        :param arg3: float sequence of length 3
+        :return: self
+        >>> mat4().translate((1,2,3))
+        mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 1,2,3,1)
+        """
         m = mat4().set_translate(arg3)
         self._multiply_inplace(m)
         return self
 
     def scale(self, arg):
+        """
+        Scales the current matrix, INPLACE
+        :param arg3: single float or float sequence of length 3
+        :return: self
+        >>> mat4().scale(2)
+        mat4(2,0,0,0, 0,2,0,0, 0,0,2,0, 0,0,0,1)
+        >>> mat4().scale((2,3,4))
+        mat4(2,0,0,0, 0,3,0,0, 0,0,4,0, 0,0,0,1)
+        """
         m = mat4().set_scale(arg)
         self._multiply_inplace(m)
         return self
 
     def rotate_x(self, degree):
+        """
+        Adds a rotation to the current matrix, INPLACE
+        :param degree: angle of rotation in degree
+        :return: self
+        >>> mat4().rotate_x(90).round()
+        mat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1)
+        """
         m = mat4().set_rotate_x(degree)
         self._multiply_inplace(m)
         return self
 
     def rotate_y(self, degree):
+        """
+        Adds a rotation to the current matrix, INPLACE
+        :param degree: angle of rotation in degree
+        :return: self
+        >>> mat4().rotate_y(90).round()
+        mat4(0,0,-1,0, 0,1,0,0, 1,0,0,0, 0,0,0,1)
+        """
         m = mat4().set_rotate_y(degree)
         self._multiply_inplace(m)
         return self
 
     def rotate_z(self, degree):
+        """
+        Adds a rotation to the current matrix, INPLACE
+        :param degree: angle of rotation in degree
+        :return: self
+        >>> mat4().rotate_z(90).round()
+        mat4(0,1,0,0, -1,0,0,0, 0,0,1,0, 0,0,0,1)
+        """
         m = mat4().set_rotate_z(degree)
         self._multiply_inplace(m)
         return self
 
     def rotate_axis(self, axis, degree):
+        """
+        Adds a rotation to the current matrix, INPLACE
+        :param axis: axis of rotation, must be normalized
+        :param degree: angle of rotation in degree
+        :return: self
+        >>> mat4().rotate_axis((1,0,0), 90).round()
+        mat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1)
+        """
         m = mat4().set_rotate_axis(axis, degree)
         self._multiply_inplace(m)
         return self
 
     # ------ value-copying methods -------
 
+    def rounded(self):
+        """
+        Returns a matrix with floor(+.5) applied to all elements
+        :return: mat4
+        >>> mat4((.1,.2,.3,.4, .5,.6,.7,.8, .9,1.,1.1,1.2, 1.3,1.4,1.5,1.6)).rounded()
+        mat4(0,0,0,0, 1,1,1,1, 1,1,1,1, 1,1,2,2)
+        >>> mat4((-.1,-.2,-.3,-.4, -.5,-.6,-.7,-.8, -.9,-1.,-1.1,-1.2, -1.3,-1.4,-1.5,-1.6)).rounded()
+        mat4(0,0,0,0, 0,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-2)
+        """
+        return self.copy().round()
+
     def transposed(self):
         """
         Returns a mat4 with columns and rows interchanged
-        :return: self
+        :return: mat4
         >>> mat4((1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)).transposed()
         mat4(1,5,9,13, 2,6,10,14, 3,7,11,15, 4,8,12,16)
         """
@@ -509,21 +565,66 @@ class mat4:
         return m
 
     def translated(self, arg3):
+        """
+        Returns a translated matrix
+        :param arg3: float sequence of length 3
+        :return: mat4
+        >>> mat4().translated((1,2,3))
+        mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 1,2,3,1)
+        """
         return self.copy().translate(arg3)
 
     def scaled(self, arg):
+        """
+        Returns a scaled matrix
+        :param arg3: single float or float sequence of length 3
+        :return: mat4
+        >>> mat4().scaled(2)
+        mat4(2,0,0,0, 0,2,0,0, 0,0,2,0, 0,0,0,1)
+        >>> mat4().scaled((2,3,4))
+        mat4(2,0,0,0, 0,3,0,0, 0,0,4,0, 0,0,0,1)
+        """
         return self.copy().scale(arg)
 
     def rotated_x(self, degree):
+        """
+        Returns a rotated matrix
+        :param degree: angle of rotation in degree
+        :return: mat4
+        >>> mat4().rotated_x(90).rounded()
+        mat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1)
+        """
         return self.copy().rotate_x(degree)
 
     def rotated_y(self, degree):
+        """
+        Returns a rotated matrix
+        :param degree: angle of rotation in degree
+        :return: mat4
+        >>> mat4().rotated_y(90).rounded()
+        mat4(0,0,-1,0, 0,1,0,0, 1,0,0,0, 0,0,0,1)
+        """
         return self.copy().rotate_y(degree)
 
     def rotated_z(self, degree):
+        """
+        Returns a rotated matrix
+        :param degree: angle of rotation in degree
+        :return: mat4
+        >>> mat4().rotated_z(90).rounded()
+        mat4(0,1,0,0, -1,0,0,0, 0,0,1,0, 0,0,0,1)
+        """
         return self.copy().rotate_z(degree)
 
     def rotated_axis(self, axis, degree):
+        """
+        Returns a rotated matrix
+        :param axis: axis of rotation, must be normalized
+        :param degree: angle of rotation in degree
+        :return: mat4
+        >>> mat4().rotated_axis((1,0,0), 90).rounded()
+        mat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1)
+        """
         return self.copy().rotate_axis(axis, degree)
 
 
