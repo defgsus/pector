@@ -69,7 +69,14 @@ class TestVec3(TestCase):
         self.assertEqual(abs(vec3((-1,-2,-3))), vec3((1,2,3)))
 
     def test_floor(self):
-        self.assertEqual(vec3((1.2,2.3,3.4)).round(), vec3((1,2,3)))
+        self.assertEqual(vec3((1.4,2.5,3.6)).floor(), vec3((1,2,3)))
+        self.assertEqual(vec3((-1.4,-2.5,-3.6)).floor(), vec3((-2,-3,-4)))
+
+    def test_round(self):
+        self.assertEqual((0, 0, 1), vec3((0.49, 0.5, 0.51)).round())
+        self.assertEqual((0, 0, -1), vec3((-0.49, -0.5, -0.51)).round())
+        self.assertEqual((0.5, 0.5, 0.5), vec3((0.49, 0.5, 0.51)).round(1))
+        self.assertEqual((-0.5, -0.5, -0.5), vec3((-0.49, -0.5, -0.51)).round(1))
 
     def test_add(self):
         self.assertEqual(vec3(1) + 2, vec3(3))
@@ -189,6 +196,28 @@ class TestMat4(TestCase):
 
     def test_equal(self):
         self.assertEqual(mat4(1), (1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1))
+
+    def test_floor(self):
+        self.assertEqual(mat4(1), mat4(1.4).floor())
+        self.assertEqual(mat4(1), mat4(1.5).floor())
+        self.assertEqual(mat4(1), mat4(1.6).floor())
+        self.assertEqual(mat4(-2), mat4(-1.4).floor())
+        self.assertEqual(mat4(-2), mat4(-1.5).floor())
+        self.assertEqual(mat4(-2), mat4(-1.6).floor())
+
+    def test_round(self):
+        self.assertEqual(mat4(0), mat4(0.49).round())
+        self.assertEqual(mat4(0), mat4(0.5).round())
+        self.assertEqual(mat4(1), mat4(0.51).round())
+        self.assertEqual(mat4(0), mat4(-0.49).round())
+        self.assertEqual(mat4(0), mat4(-0.5).round())
+        self.assertEqual(mat4(-1), mat4(-0.51).round())
+        self.assertEqual(mat4(0.5), mat4(0.49).round(1))
+        self.assertEqual(mat4(0.5), mat4(0.5).round(1))
+        self.assertEqual(mat4(0.5), mat4(0.51).round(1))
+        self.assertEqual(mat4(-0.5), mat4(-0.49).round(1))
+        self.assertEqual(mat4(-0.5), mat4(-0.5).round(1))
+        self.assertEqual(mat4(-0.5), mat4(-0.51).round(1))
 
     def test_aritm(self):
         self.assertEqual(mat4(1)+mat4(2), mat4(3))

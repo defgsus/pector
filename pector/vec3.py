@@ -266,16 +266,22 @@ class vec3:
         self.v = [math.floor(x) for x in self.v]
         return self
 
-    def round(self):
+    def round(self, ndigits=None):
         """
-        Applies floor(+.5) to all elements, INPLACE
+        Applies the round() function to all elements, INPLACE
+        :param ndigits: None, or the number of digits
         :return: self
         >>> vec3((0.1, 1.5, 2.9)).round()
         vec3(0, 2, 3)
         >>> vec3((-1.1, -1.9, -0.9)).round()
         vec3(-1, -2, -1)
+        >>> vec3((0.123, 0.4999, 0.5102)).round(2)
+        vec3(0.12, 0.5, 0.51)
         """
-        self.v = [math.floor(x+.5) for x in self.v]
+        if ndigits:
+            self.v = [round(x,ndigits) for x in self.v]
+        else:
+            self.v = [round(x) for x in self.v]
         return self
 
     def normalize(self):
@@ -431,16 +437,19 @@ class vec3:
         """
         return vec3(self.v).floor()
 
-    def rounded(self):
+    def rounded(self, ndigits=None):
         """
         Returns a vector with floor(+.5) applied to all elements
+        :param ndigits: None, or the number of digits
         :return: self
         >>> vec3((0.1, 1.5, 2.9)).rounded()
         vec3(0, 2, 3)
         >>> vec3((-1.1, -1.9, -0.9)).rounded()
         vec3(-1, -2, -1)
+        >>> vec3((0.123, 0.4999, 0.5102)).rounded(2)
+        vec3(0.12, 0.5, 0.51)
         """
-        return vec3(self.v).round()
+        return vec3(self.v).round(ndigits)
 
     def normalized(self):
         """

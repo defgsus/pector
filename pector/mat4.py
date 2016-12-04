@@ -279,16 +279,20 @@ class mat4:
         self.v = [math.floor(x) for x in self.v]
         return self
 
-    def round(self):
+    def round(self, ndigits=None):
         """
-        Applies floor(+.5) to all elements, INPLACE
+        Applies round() function to all elements, INPLACE
+        :param ndigits: None, or the number of digits
         :return: self
         >>> mat4((.1,.2,.3,.4, .5,.6,.7,.8, .9,1.,1.1,1.2, 1.3,1.4,1.5,1.6)).round()
-        mat4(0,0,0,0, 1,1,1,1, 1,1,1,1, 1,1,2,2)
+        mat4(0,0,0,0, 0,1,1,1, 1,1,1,1, 1,1,2,2)
         >>> mat4((-.1,-.2,-.3,-.4, -.5,-.6,-.7,-.8, -.9,-1.,-1.1,-1.2, -1.3,-1.4,-1.5,-1.6)).round()
-        mat4(0,0,0,0, 0,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-2)
+        mat4(0,0,0,0, 0,-1,-1,-1, -1,-1,-1,-1, -1,-1,-2,-2)
         """
-        self.v = [math.floor(x+.5) for x in self.v]
+        if ndigits:
+            self.v = [round(x,ndigits) for x in self.v]
+        else:
+            self.v = [round(x) for x in self.v]
         return self
 
     def transpose(self):
@@ -517,16 +521,17 @@ class mat4:
 
     # ------ value-copying methods -------
 
-    def rounded(self):
+    def rounded(self, ndigits=None):
         """
         Returns a matrix with floor(+.5) applied to all elements
+        :param ndigits: None, or the number of digits
         :return: mat4
         >>> mat4((.1,.2,.3,.4, .5,.6,.7,.8, .9,1.,1.1,1.2, 1.3,1.4,1.5,1.6)).rounded()
-        mat4(0,0,0,0, 1,1,1,1, 1,1,1,1, 1,1,2,2)
+        mat4(0,0,0,0, 0,1,1,1, 1,1,1,1, 1,1,2,2)
         >>> mat4((-.1,-.2,-.3,-.4, -.5,-.6,-.7,-.8, -.9,-1.,-1.1,-1.2, -1.3,-1.4,-1.5,-1.6)).rounded()
-        mat4(0,0,0,0, 0,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-2)
+        mat4(0,0,0,0, 0,-1,-1,-1, -1,-1,-1,-1, -1,-1,-2,-2)
         """
-        return self.copy().round()
+        return self.copy().round(ndigits)
 
     def transposed(self):
         """
