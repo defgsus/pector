@@ -2,24 +2,22 @@ from .csg_base import *
 from .glsl import to_glsl
 
 class DeformBase(CsgBase):
-    def __init__(self, name, object, transform=mat4()):
+    def __init__(self, name, object=None, transform=mat4()):
         super(DeformBase, self).__init__(name, transform=transform)
-        self.add_node(object)
-
-    def __str__(self):
-        return "Deform(\"%s\", transform=%s, %s)" % (self.name, self.transform, self.object)
+        if object:
+            self.add_node(object)
 
     def contained_object(self):
         return self.nodes[0] if len(self.nodes) else None
 
 
 class Repeat(DeformBase):
-    def __init__(self, object, repeat = vec3((1,0,0)), transform=mat4()):
+    def __init__(self, object=None, repeat = vec3((1,0,0)), transform=mat4()):
         super(Repeat, self).__init__("repeat", object=object, transform=transform)
         self.repeat = vec3(repeat)
 
-    def __str__(self):
-        return "Repeat(%s, tranform=%s, %s)" % (self.repeat, self.transform, self.contained_object())
+    def param_string(self):
+        return "repeat=%s" % self.repeat
 
     def copy(self):
         return Repeat(object = self.nodes[0].copy(), repeat=self.repeat, transform=self.transform)

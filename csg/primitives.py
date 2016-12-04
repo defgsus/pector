@@ -6,9 +6,6 @@ class Primitive(CsgBase):
         super(Primitive, self).__init__(name, transform=transform)
         self._can_have_nodes = False
 
-    def __str__(self):
-        return "Primitive(\"%s\", transform=%s)" % (self.name, self.transform)
-
 
 
 class Sphere(Primitive):
@@ -16,8 +13,8 @@ class Sphere(Primitive):
         super(Sphere, self).__init__(name="sphere", transform=transform)
         self.radius = tools.check_float_number(radius)
 
-    def __str__(self):
-        return "Sphere(radius=%g, transform=%s)" % (self.radius, self.transform)
+    def param_string(self):
+        return "radius=%g" % self.radius
 
     def copy(self):
         return Sphere(radius=self.radius, transform=self.transform)
@@ -38,8 +35,8 @@ class Tube(Primitive):
             raise ValueError("Illegal axis argument %d" % axis)
         self.axis = axis
 
-    def __str__(self):
-        return "Tube(radius=%g, axis=%d, transform=%s)" % (self.radius, self.axis, self.transform)
+    def param_string(self):
+        return "radius=%g, axis=%d" % (self.radius, self.axis)
 
     def copy(self):
         return Tube(radius=self.radius, axis=self.axis, transform=self.transform)

@@ -73,6 +73,42 @@ def csg_2():
         ], transform=mat4().translate((1, 0, 0))
     )
 
-c = csg_2()
+
+import random
+def random_object(only_primitives=False):
+    if only_primitives:
+        classes = [Sphere, Tube]
+    else:
+        classes = [Union, Difference, Intersection,
+                   Repeat,
+                   Sphere, Tube]
+    c = random.choice(classes)()
+    if hasattr(c, "radius"):
+        c.radius = round(random.uniform(.01, 2.), 3)
+    if hasattr(c, "axis"):
+        c.axis = random.randint(0,2)
+    if hasattr(c, "repeat"):
+        c.repeat = vec3((random.uniform(.5,2.), random.uniform(.5,2.), random.uniform(.5,2.)))
+
+    return c
+
+def random_csg():
+    root = Union()
+    for i in range(20):
+        objs = list(root.nodes_as_set())
+        for j in range(3):
+            n = random.choice(objs)
+            if n.can_have_nodes:
+                c = random_object()
+                n.add_node(c)
+
+    objs = root.nodes_as_set()
+    for o in objs:
+        if not o.nodes and not isinstance(o, Primitive):
+            o.add_node(random_object(only_primitives=True))
+
+    return root
+
+c = random_csg()
 print( csg.glsl.render_glsl(c) )
 #render(c)

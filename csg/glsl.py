@@ -8,6 +8,8 @@ def to_glsl(arg):
     :return: string
     """
     if isinstance(arg, float):
+        if abs(arg) < 1e-10:
+            arg = 0.
         s = str(arg)
         if not '.' in s:
             s += '.'
@@ -32,8 +34,10 @@ def render_glsl(csg, indent="    "):
     """
     Render the whole glsl code to represent the CSG object
     :param csg: CsgBase
+    :param indent: The indentation string to use within function bodies
     :return:
     """
+    # a visitor to render the functions for nodes that define them
     class FuncVisitor(TreeNodeVisitor):
         def __init__(self):
             self.code = ""
@@ -48,7 +52,7 @@ def render_glsl(csg, indent="    "):
                 self.code += indent_code(body, indent) + "\n"
                 self.code += "}\n"
 
-    code = "/*\n%s\n%s*/\n" % (str(csg), csg.render_node_tree())
+    code = "/*\n%s*/\n" % csg.render_node_tree(lambda node: repr(node))
 
     # render needed functions
     f = FuncVisitor()

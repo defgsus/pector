@@ -25,6 +25,9 @@ class TreeNode:
     @property
     def node_root(self):
         return self if not self._node_parent else self._node_parent.node_root
+    @property
+    def can_have_nodes(self):
+        return self._can_have_nodes
 
     def add_node(self, node):
         if not self._can_have_nodes:
@@ -64,15 +67,26 @@ class TreeNode:
                     d[l] += sub[l]
         return d
 
-    def render_node_tree(self, prefix=""):
-        s = "%s%s\n" % (prefix, self.node_name)
+    def render_node_tree(self, name_func=None):
+        """
+        Returns a multi-line string with the whole tree rendered in ascii
+        :param name_func: An optional function called for each node to get it's textual representation
+        If omitted, the node_name property is used.
+        :return: str
+        """
+        #a = name_func(self)
+        #print(a)
+        return self._render_node_tree(prefix="", name_func=name_func)
+
+    def _render_node_tree(self, prefix, name_func):
+        s = "%s%s\n" % (prefix, name_func(self) if name_func else self.node_name)
         prefix = prefix.replace('-', ' ').replace('\\', ' ').replace('+', '|')
         for i in range(len(self.nodes)):
             if i+1 < len(self.nodes):
                 subprefix = "%s+-" % prefix
             else:
                 subprefix = "%s\\-" % prefix
-            s += self.nodes[i].render_node_tree(subprefix)
+            s += self.nodes[i]._render_node_tree(subprefix, name_func)
         return s
 
 

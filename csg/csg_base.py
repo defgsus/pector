@@ -44,7 +44,15 @@ class CsgBase(TreeNode, GlslBase):
         self._id = abs(self.__hash__())
 
     def __str__(self):
-        return "CsgBase(\"%s\")" % self.node_name
+        p = self.param_string()
+        if self.has_transform:
+            if p:
+                p += ", "
+            p += "transform=%s" % self.transform
+        return "%s(%s)" % (self.__class__.__name__, p)
+
+    def param_string(self):
+        raise NotImplementedError
 
     #def __repr__(self):
     #    return self.__str__()
