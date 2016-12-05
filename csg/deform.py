@@ -53,7 +53,7 @@ class Repeat(DeformBase):
 
 class Fan(DeformBase):
     def __init__(self, object=None, angle = (-15., 15.), axis=0, transform=mat4()):
-        super(Fan, self).__init__("repeat", object=object, transform=transform)
+        super(Fan, self).__init__("fan", object=object, transform=transform)
         self.angle = angle
         if axis < 0 or axis > 2:
             raise ValueError("Illegal axis argument %d" % axis)

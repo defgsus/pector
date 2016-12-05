@@ -41,7 +41,7 @@ def csg_0():
 
 def csg_1():
     stripes = Repeat(
-            Tube(radius=.1, axis=1)#, transform=mat4().rotate_z(22.5).translate((2,0,0)))
+            Tube(radius=.3, axis=1)#, transform=mat4().rotate_z(22.5).translate((2,0,0)))
             , repeat=vec3((1., 0, 0))
             , transform=mat4().rotate_z(45.)
         )
@@ -124,13 +124,38 @@ def csg_3():
     return Union([
         Union([
             spheres.copy(),
+            #Repeat(repeat=vec3(20,20,0), object=
             Fan(axis=2, angle=(-15,15),
                 object=spheres.copy().set_transform(mat4().translate((0,6.,-10.)))
-                )
+                )#)
         ])
         #Difference([
         #    Tube(axis=1, transform=mat4().translate((3,0,0)))
         #])
+    ])
+
+def csg_4():
+    cones = Intersection([
+        Tube(radius=5),
+        Repeat(repeat=vec3(0,2,2),
+               object=Difference([
+                    Tube(radius=.5),
+                    Repeat(repeat=(0.81,0,0),
+                           object=Fan(axis=0, angle=(-360./12.,360./12.),
+                                      object=Sphere(radius=0.4, transform=mat4().translate((0,0,.59)))
+                                     )
+                          ),
+                    Repeat(repeat=(0.05, 0, 0),
+                           object=Fan(axis=0, angle=(-2, 2),
+                                      object=Sphere(radius=0.02, transform=mat4().translate((0, 0, .5)))
+                                     )
+                          )
+                    ])
+               )
+        ])
+    return Union([
+        cones.copy().set_transform(mat4().rotate_y(90).translate((.5,.5,0))),
+        cones.copy().set_transform(mat4().rotate_z(45).translate((0, 0, -10)))
     ])
 
 def build_frag_src(c):
@@ -152,7 +177,7 @@ vec3 DE_norm(in vec3 p)
 float sphere_trace(in vec3 ro, in vec3 rd)
 {
     float t = 0.;
-    for (int i=0; i<50; ++i)
+    for (int i=0; i<150 && t < 100.; ++i)
     {
         float d = DE(ro + rd * t);
         if (d < 0.001)
@@ -179,7 +204,7 @@ vec3 light(in vec3 p, in vec3 n, in vec3 refl, in vec3 lp, in vec3 co)
 
 vec3 render(in vec2 uv)
 {
-    vec3 ro = vec3(0,0,5.)+0.0001;
+    vec3 ro = vec3(1,2,5.)+0.0001;
     vec3 rd = normalize(vec3(uv, -1.2));
     float t = sphere_trace(ro, rd);
     if (t < 0.)
@@ -216,7 +241,7 @@ void main()
 """ % csg.glsl.render_glsl(c)
     return src
 
-c = csg_3()
+c = csg_1()
 print( csg.glsl.render_glsl(c) )
 #render(c)
 shader_window.render_frag(build_frag_src(c))
