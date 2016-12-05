@@ -87,7 +87,15 @@ class CsgBase(TreeNode, GlslBase):
     def get_distance(self, pos):
         raise NotImplementedError
 
-
+    def sphere_trace(self, ro, rd):
+        t = 0.
+        for i in range(150):
+            p = ro + rd * t
+            d = self.get_distance(p)
+            if d < 0.001:
+                return t
+            t += d
+        return -1.
 
 
 

@@ -1,6 +1,6 @@
 from csg import *
 import csg.glsl
-import shader_window
+import csg_shader_window
 
 def print_slice(csg, center=(0., 0.), size=(20,20), scale=.1):
     chars = [' ', '.', ':', '+', '*', '#']
@@ -158,90 +158,8 @@ def csg_4():
         cones.copy().set_transform(mat4().rotate_z(45).translate((0, 0, -10)))
     ])
 
-def build_frag_src(c):
-    src = """
-in vec4 v_pos;
-uniform vec2 iResolution;
-//float DE(in vec3 p) { return length(p)-1.; }
-%s
-
-vec3 DE_norm(in vec3 p)
-{
-    vec2 e = vec2(0.001, 0.);
-    return normalize(vec3(
-        DE(p + e.xyy) - DE(p - e.xyy),
-        DE(p + e.yxy) - DE(p - e.yxy),
-        DE(p + e.yyx) - DE(p - e.yyx) ));
-}
-
-float sphere_trace(in vec3 ro, in vec3 rd)
-{
-    float t = 0.;
-    for (int i=0; i<150 && t < 100.; ++i)
-    {
-        float d = DE(ro + rd * t);
-        if (d < 0.001)
-            return t;
-        t += d;
-    }
-    return -1.;
-}
-
-vec3 sky_c(in vec3 rd)
-{
-    return mix(vec3(0.5,.3,.1)*.5,
-               vec3(0.2,.5,.8)*.6, rd.y*.5+.5);
-}
-
-vec3 light(in vec3 p, in vec3 n, in vec3 refl, in vec3 lp, in vec3 co)
-{
-    vec3 ln = normalize(lp - p);
-    float ph = max(0., dot(n, ln));
-    float sh = max(0., dot(refl, ln));
-    return co * pow(ph, 2.)
-         + co * pow(sh, 9.) * .5;
-}
-
-vec3 render(in vec2 uv)
-{
-    vec3 ro = vec3(1,2,5.)+0.0001;
-    vec3 rd = normalize(vec3(uv, -1.2));
-    float t = sphere_trace(ro, rd);
-    if (t < 0.)
-        return sky_c(rd);
-
-    vec3 po = ro+t*rd;
-    vec3 n = DE_norm(po);
-    vec3 refl = reflect(rd, n);
-
-    vec3 col = vec3(0.);
-    col += sky_c(refl)*.3;
-    col += (sky_c(rd)*.2+.4) * pow(max(0., dot(rd, refl)), 7.);
-    col += light(po, n, refl, vec3(10,10,-3), vec3(.6,.7,1.));
-    col += light(po, n, refl, vec3(-2,-4,10), vec3(1,.7,.5));
-    return sqrt(col);
-}
-
-void main()
-{
-    vec2 uv = v_pos.xy * vec2(iResolution.x/iResolution.y, 1.);
-
-    vec3 col = vec3(0.);
-
-#if 0
-    float d = DE(vec3(uv*4.,0));
-    col += smoothstep(2., 0., d) * 0.1;
-    col.y += smoothstep(0.02, 0., abs(d)-0.01);
-    col.y += smoothstep(0.01, 0., d) * 0.1;
-#else
-    col = render(uv);
-#endif
-    gl_FragColor = vec4(col,1);
-}
-""" % csg.glsl.render_glsl(c)
-    return src
 
 c = csg_1()
 print( csg.glsl.render_glsl(c) )
 #render(c)
-shader_window.render_frag(build_frag_src(c))
+csg_shader_window.render_csg(c)
