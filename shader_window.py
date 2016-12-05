@@ -42,7 +42,8 @@ class RenderWindow(pyglet.window.Window):
         self.clear()
         if not self.shader:
             self.compile()
-        self.shader.uniforms.iResolution = (self.width, self.height)
+        if "iResolution" in self.shader.uniforms:
+            self.shader.uniforms.iResolution = (self.width, self.height)
         pyglet.graphics.draw(6, pyglet.gl.GL_TRIANGLES,
                              ('v2f', (-1,-1, 1,-1, -1,1
                                       ,1,-1, 1,1, -1,1))#(0,0, window.width,0, 0,window.height,
