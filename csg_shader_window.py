@@ -1,7 +1,7 @@
 import pyglet
 import pyshaders
 from csg.glsl import render_glsl
-from pector import vec3
+from pector import vec3, mat4
 
 vert_src = """
 in vec4 pos;
@@ -15,9 +15,11 @@ void main()
 
 frag_src = """
 in vec4 v_pos;
-uniform vec2 iResolution;
-uniform vec2 iUV;
-uniform vec3 iHitPos;
+uniform vec2 u_resolution;
+uniform vec2 u_mouse_uv;
+uniform vec3 u_hit_pos;
+uniform mat4 u_transform;
+
 
 //float DE(in vec3 p) { return length(p)-1.; }
 %(DE)s
@@ -63,6 +65,9 @@ void get_ray(in vec2 uv, out vec3 ro, out vec3 rd)
 {
     ro = vec3(1,2,5.)+0.0001;
     rd = normalize(vec3(uv, -1.2));
+
+    ro = (u_transform * vec4(ro, 1.)).xyz;
+    rd = (u_transform * vec4(rd, 0.)).xyz;
 }
 
 vec3 render(in vec2 uv)
@@ -83,14 +88,15 @@ vec3 render(in vec2 uv)
     col += light(po, n, refl, vec3(10,10,-3), vec3(.6,.7,1.));
     col += light(po, n, refl, vec3(-2,-4,10), vec3(1,.7,.5));
 
-    col.x += smoothstep(1.,.0, length(po - iHitPos));
+    col += smoothstep(.2,.0, length(po - u_hit_pos)) * vec3(0,1,1);
+    col += light(po, n, refl, u_hit_pos, vec3(0,1,1)) * .4;
 
     return sqrt(col);
 }
 
 void main()
 {
-    vec2 uv = v_pos.xy * vec2(iResolution.x/iResolution.y, 1.);
+    vec2 uv = v_pos.xy * vec2(u_resolution.x/u_resolution.y, 1.);
 
     vec3 col = vec3(0.);
 
@@ -102,7 +108,7 @@ void main()
 #else
     col = render(uv);
 #endif
-    //col += smoothstep(0.02,0., length(uv - iUV));
+    //col += smoothstep(0.02,0., length(uv - u_mouse_uv));
     gl_FragColor = vec4(col,1);
 }
 """
@@ -114,7 +120,9 @@ class RenderWindow(pyglet.window.Window):
         self.shader = None
         self.dist_field = dist_field
         self.uv = (0,0)
+        self.is_hit = False
         self.hit_pos = vec3()
+        self.transform = mat4().rotate_y(90)
 
     def compile(self):
         try:
@@ -133,12 +141,14 @@ class RenderWindow(pyglet.window.Window):
         self.clear()
         if not self.shader:
             self.compile()
-        if "iResolution" in self.shader.uniforms:
-            self.shader.uniforms.iResolution = (self.width, self.height)
-        if "iUV" in self.shader.uniforms:
-            self.shader.uniforms.iUV = self.uv
-        if "iHitPos" in self.shader.uniforms:
-            self.shader.uniforms.iHitPos = tuple(self.hit_pos)
+        if "u_resolution" in self.shader.uniforms:
+            self.shader.uniforms.u_resolution = (self.width, self.height)
+        if "u_mouse_uv" in self.shader.uniforms:
+            self.shader.uniforms.u_mouse_uv = self.uv
+        if "u_hit_pos" in self.shader.uniforms:
+            self.shader.uniforms.u_hit_pos = tuple(self.hit_pos)
+        if "u_transform" in self.shader.uniforms:
+            self.shader.uniforms.u_transform = self.matrix_tuple(self.transform)
         pyglet.graphics.draw(6, pyglet.gl.GL_TRIANGLES,
                              ('v2f', (-1,-1, 1,-1, -1,1
                                       ,1,-1, 1,1, -1,1))#(0,0, window.width,0, 0,window.height,
@@ -149,18 +159,43 @@ class RenderWindow(pyglet.window.Window):
         self.close()
 
     def on_mouse_press(self, x, y, button, modifiers):
+        self.y_down = y
+        self.x_down = x
         ray = self.get_ray(x,y)
         t = self.dist_field.sphere_trace(ray[0], ray[1])
+        self.is_hit = t > 0.
         self.hit_pos = ray[0] + ray[1] * t
         print("ro %s, rd %s, t %g, hit %s" % (ray[0], ray[1], t, self.hit_pos))
 
+    def on_mouse_drag(self, x, y, dx, dy, but, mod):
+        if self.is_hit:
+            m = self.transform.copy().set_position((0,0,0))
+            X = m * (1,0,0)
+            Y = m * (0,1,0)
+            self.transform.translate(-self.hit_pos)
+            self.transform.rotate_axis(X, dy)
+            self.transform.rotate_axis(Y, -dx)
+            self.transform.translate(self.hit_pos)
+
+
+    def get_uv(self, x, y):
+        return ((x / self.width * 2. - 1.) * self.width / self.height,
+                y / self.height * 2. - 1.)
+
     def get_ray(self, x, y):
-        self.uv = ((x/self.width*2.-1.) * self.width / self.height,
-                   y/self.height*2.-1.)
-        ro = vec3(1, 2, 5.) + 0.0001
-        rd = vec3(self.uv[0], self.uv[1], -1.2).normalize()
+        self.uv = self.get_uv(x, y)
+        ro = self.transform * (vec3(1, 2, 5.) + 0.0001)
+        m = self.transform.copy()
+        m.set_position((0,0,0))
+        rd = m * vec3(self.uv[0], self.uv[1], -1.2).normalize()
         return (ro, rd)
 
+    def matrix_tuple(self, t):
+        # TODO: add such a conversion to mat4
+        return ((t[0], t[4], t[8], t[12]),
+                (t[1], t[5], t[9], t[13]),
+                (t[2], t[6], t[10], t[14]),
+                (t[3], t[7], t[11], t[15]),)
 
 def render_csg(dist_field):
     RenderWindow(dist_field=dist_field)
