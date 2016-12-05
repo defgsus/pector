@@ -1,6 +1,6 @@
 from csg import *
 import csg.glsl
-
+import shader_window
 
 def print_slice(csg, center=(0., 0.), size=(20,20), scale=.1):
     chars = [' ', '.', ':', '+', '*', '#']
@@ -109,6 +109,40 @@ def random_csg():
 
     return root
 
-c = random_csg()
+def csg_3():
+    return Union([
+        Repeat(
+            Sphere(),
+            repeat=vec3(0,2,0)
+        ),
+        Difference([
+            Tube(axis=1, transform=mat4().translate((3,0,0)))
+        ])
+    ])
+
+def build_frag_src(c):
+    src = """
+in vec4 v_pos;
+uniform vec2 iResolution;
+%s
+
+void main()
+{
+    vec2 uv = v_pos.xy * vec2(iResolution.x/iResolution.y, 1.);
+
+    vec3 col = vec3(0.);
+
+    float d = DE(vec3(uv*4.,0));
+
+    col += smoothstep(2., 0., d) * 0.1;
+    col.y += smoothstep(0.02, 0., abs(d)-0.01);
+    col.y += smoothstep(0.01, 0., d) * 0.1;
+    gl_FragColor = vec4(col,1);
+}
+""" % csg.glsl.render_glsl(c)
+    return src
+
+c = csg_1()
 print( csg.glsl.render_glsl(c) )
 #render(c)
+shader_window.render_frag(build_frag_src(c))

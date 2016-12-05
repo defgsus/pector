@@ -35,6 +35,9 @@ class Repeat(DeformBase):
 
     def get_glsl_function_body(self):
         code = ""
+        pos = self.get_glsl_transform("pos")
+        if not pos == "pos":
+            code += "pos = %s;\n" % pos
         for i in range(3):
             r = self.repeat[i]
             if r > 0.:
@@ -43,8 +46,5 @@ class Repeat(DeformBase):
                     "m": to_glsl(r),
                     "h": to_glsl(r*.5),
                 }
-        pos = self.get_glsl_transform("pos")
-        if not pos == "pos":
-            code += "pos = %s;\n" % pos
         code += "return %s;" % self.contained_object().get_glsl("pos")
         return code

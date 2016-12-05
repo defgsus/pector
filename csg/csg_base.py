@@ -26,11 +26,11 @@ class GlslBase:
     def get_glsl_transform(self, pos):
         if self.has_transform:
             if not self.transform.has_translation():
-                pos = "(%s * %s)" % (to_glsl(self.transform.get_3x3()), pos)
+                pos = "(%s * %s)" % (to_glsl(self.itransform.get_3x3()), pos)
             elif not self.transform.has_rotation():
-                pos = "(%s + %s)" % (pos, to_glsl(self.transform.position()))
+                pos = "(%s + %s)" % (pos, to_glsl(self.itransform.position()))
             else:
-                pos = "(%s * vec4(%s,1.)).xyz" % (to_glsl(self.transform), pos)
+                pos = "(%s * vec4(%s,1.)).xyz" % (to_glsl(self.itransform), pos)
         return pos
 
 
@@ -63,6 +63,9 @@ class CsgBase(TreeNode, GlslBase):
     @property
     def transform(self):
         return self._transform
+    @property
+    def itransform(self):
+        return self._itransform
     @transform.setter
     def transform(self, mat):
         self.set_transform(mat)

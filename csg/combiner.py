@@ -27,6 +27,7 @@ class CombineBase(CsgBase):
         code = "float d = %s;\n" % self.nodes[0].get_glsl(pos)
         for i in range(1, len(self.nodes)):
             code += ("d = %s;\n" % self.get_glsl_operation()) % ("d", self.nodes[i].get_glsl(pos))
+        code += "return d;"
         return code
 
     def get_glsl_operation(self):
