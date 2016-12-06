@@ -22,19 +22,23 @@ and to replace the C function bodies with the usual super-efficient c-style matr
 and to use inplace operations as much as possible, get rid of the internal python list object, etc..
 
 I've started to write a C extension like this from the CPython side which was an interesting task
-but which is hard to sustain and doesn't teach me good python after all 
+but which is hard to sustain and doesn't teach me good python after all.
+ 
+**update**: Check [cppy](https://github.com/defgsus/cppy) for an attempt to generate the c-bindings 
 
 ### current state ###
 
-vec3 is almost ready and mat4 is implemented in basic. 
+*vec3* is almost ready and *mat4* is implemented in basic. 
 I want to do some practical stuff to see if the interface works out
 
+The csg package contained in this repo is one little project using the lib  
+ 
+### desired ###
+
 finally package should contain:
-vec2, vec3, vec4, mat3, mat4, quat
-
-all kinds of rotations, transformations, projections, frustums, etc...
-
-and non-member funcs like:
+- vec2, vec3, vec4, mat3, mat4, quat
+- all kinds of rotations, transformations, projections, frustums, etc...
+- non-member funcs like:
 ```python
 >>> from pector.functions import *
 >>> a = cross([1,2,3], [3,4,5])

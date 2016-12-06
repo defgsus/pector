@@ -580,6 +580,13 @@ class mat4:
         m.v[15] = self.v[15]
         return m
 
+    def position_cleared(self):
+        """
+        Returns a copy of the matrix with translation set to zero
+        :return: mat4
+        """
+        return self.copy().set_position((0,0,0))
+
     def translated(self, arg3):
         """
         Returns a translated matrix

@@ -180,7 +180,7 @@ def csg_5():
 
     return o;
 
-c = csg_5()
+c = csg_3()
 #print( csg.glsl.render_glsl(c) )
 #render(c)
 csg_shader_window.render_csg(c)

@@ -91,6 +91,13 @@ class CsgBase(TreeNode, GlslBase):
     def get_distance(self, pos):
         raise NotImplementedError
 
+    def get_normal(self, pos, e = 0.001):
+        return vec3(
+            self.get_distance(pos + (e, 0, 0)) - self.get_distance(pos - (e, 0, 0)),
+            self.get_distance(pos + (0, e, 0)) - self.get_distance(pos - (0, e, 0)),
+            self.get_distance(pos + (0, 0, e)) - self.get_distance(pos - (0, 0, e))
+        ).normalize_safe()
+
     def sphere_trace(self, ro, rd):
         t = 0.
         for i in range(150):

@@ -170,17 +170,20 @@ class RenderWindow(pyglet.window.Window):
         #print("ro %s, rd %s, t %g, hit %s" % (ray[0], ray[1], t, self.hit_pos))
 
     def on_mouse_drag(self, x, y, dx, dy, but, mod):
+        use_pivot = self.is_hit and not but == 4
+        pivot = self.hit_pos if use_pivot else self.transform.position()
         m = self.transform.copy().set_position((0,0,0))
         X = m * (1,0,0)
         Y = m * (0,1,0)
-        if self.is_hit:
-            self.transform.translate(-self.hit_pos)
+        self.transform.translate(-pivot)
         self.transform.rotate_axis(X, dy)
         self.transform.rotate_axis(Y, -dx)
-        if self.is_hit:
-            self.transform.translate(self.hit_pos)
+        self.transform.translate(pivot)
+        self.move_outside()
 
-
+    def on_mouse_scroll(self, x, y, sx, sy):
+        fwd = self.transform.position_cleared() * (0,0,-1)
+        self.transform.translate(fwd * -sy)
 
 
     def get_uv(self, x, y):
@@ -201,6 +204,25 @@ class RenderWindow(pyglet.window.Window):
                 (t[1], t[5], t[9], t[13]),
                 (t[2], t[6], t[10], t[14]),
                 (t[3], t[7], t[11], t[15]),)
+
+    def move_outside(self):
+        limit = .1
+        min_step = .2
+        p = self.transform.position()
+        d = self.dist_field.get_distance(p)
+        tries = 0
+        while d < limit and tries < 5:
+            if d < 0.:
+                if d > -min_step:
+                    d = -min_step
+            else:
+                if d < min_step:
+                    d = min_step
+            p += d * self.dist_field.get_normal(p)
+            d = self.dist_field.get_distance(p)
+            tries += 1
+        self.transform.set_position(p)
+
 
 def render_csg(dist_field):
     RenderWindow(dist_field=dist_field)
