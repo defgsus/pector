@@ -1,8 +1,8 @@
 import math
-from pector import tools, const
+from pector import vec_base, vec3, tools, const
 
 
-class mat4:
+class mat4(vec_base):
     """
     4x4 anisotropic matrix - column-major order
     """
@@ -22,62 +22,10 @@ class mat4:
                     r += " "
         return r + ")"
 
-    def __repr__(self):
-        return self.__unicode__()
-
     def __len__(self):
         return 16
 
-    def __iter__(self):
-        return self.v.__iter__()
-
-    def __getitem__(self, item):
-        return self.v[item]
-
-    def __setitem__(self, key, value):
-        self.v[key] = float(value)
-
-    def __eq__(self, other):
-        if isinstance(other, mat4):
-            return self.v == other.v
-        tools.check_float_sequence(other)
-        if not len(other) == len(self):
-            return False
-        for i in range(len(self)):
-            if not self.v[i] == other[i]:
-                return False
-        return True
-
-    def __abs__(self):
-        return mat4([abs(x) for x in self.v])
-
-    def __neg__(self):
-        return mat4([-x for x in self.v])
-
-    def __contains__(self, item):
-        return item in self.v
-
     # ------- arithmetic ops --------
-
-    def __add__(self, arg):
-        return self._binary_operator(arg, lambda l, r: l + r)
-
-    def __radd__(self, arg):
-        return self._binary_operator(arg, lambda r, l: l + r)
-
-    def __iadd__(self, arg):
-        return self._binary_operator_inplace(arg, lambda l, r: l + r)
-
-
-    def __sub__(self, arg):
-        return self._binary_operator(arg, lambda l, r: l - r)
-
-    def __rsub__(self, arg):
-        return self._binary_operator(arg, lambda r, l: l - r)
-
-    def __isub__(self, arg):
-        return self._binary_operator_inplace(arg, lambda l, r: l - r)
-
 
     def __mul__(self, arg):
         if tools.is_number(arg):
@@ -97,46 +45,7 @@ class mat4:
         tools.check_float_sequence(arg, len(self))
         return self._multiply_inplace(self, arg)
 
-
-    def __truediv__(self, arg):
-        return self._binary_operator(arg, lambda l, r: l / r)
-
-    def __rtruediv__(self, arg):
-        return self._binary_operator(arg, lambda r, l: l / r)
-
-    def __itruediv__(self, arg):
-        return self._binary_operator_inplace(arg, lambda l, r: l / r)
-
-
-    def __mod__(self, arg):
-        return self._binary_operator(arg, lambda l, r: l % r)
-
-    def __rmod__(self, arg):
-        return self._binary_operator(arg, lambda r, l: l % r)
-
-    def __imod__(self, arg):
-        return self._binary_operator_inplace(arg, lambda l, r: l % r)
-
-
     # --- helper ---
-
-    def _binary_operator(self, arg, op):
-        if tools.is_number(arg):
-            fother = float(arg)
-            return mat4([op(x, fother) for x in self.v])
-        tools.check_float_sequence(arg, len(self))
-        return mat4([op(x, float(arg[i])) for i, x in enumerate(self.v)])
-
-    def _binary_operator_inplace(self, arg, op):
-        if tools.is_number(arg):
-            fother = float(arg)
-            for i in range(len(self)):
-                self.v[i] = op(self.v[i], fother)
-            return self
-        tools.check_float_sequence(arg, len(self))
-        for i in range(len(self)):
-            self.v[i] = op(self.v[i], float(arg[i]))
-        return self
 
     @classmethod
     def _multiply(cls, l, r):
@@ -169,24 +78,6 @@ class mat4:
         return self
 
     # ----- public API getter ------
-
-    def copy(self):
-        """
-        Returns a copy of the matrix
-        :return: mat4
-        """
-        return mat4(self)
-
-    def dot(self, arg):
-        """
-        Returns the dot product of self and other mat4
-        :param arg: float sequence of length 16
-        :return: float
-        >>> mat4(1).dot(mat4(2))
-        8.0
-        """
-        tools.check_float_sequence(arg, len(self))
-        return sum([x * float(arg[i]) for i, x in enumerate(self.v)])
 
     def position(self):
         """
@@ -278,34 +169,6 @@ class mat4:
         self.v[14] = float(arg3[2])
         return self
 
-    def floor(self):
-        """
-        Applies the floor() function to all elements, INPLACE
-        :return: self
-        >>> mat4((.1,.2,.3,.4, .5,.6,.7,.8, .9,1.,1.1,1.2, 1.3,1.4,1.5,1.6)).floor()
-        mat4(0,0,0,0, 0,0,0,0, 0,1,1,1, 1,1,1,1)
-        >>> mat4((-.1,-.2,-.3,-.4, -.5,-.6,-.7,-.8, -.9,-1.,-1.1,-1.2, -1.3,-1.4,-1.5,-1.6)).floor()
-        mat4(-1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-2,-2, -2,-2,-2,-2)
-        """
-        self.v = [math.floor(x) for x in self.v]
-        return self
-
-    def round(self, ndigits=None):
-        """
-        Applies round() function to all elements, INPLACE
-        :param ndigits: None, or the number of digits
-        :return: self
-        >>> mat4((.1,.2,.3,.4, .5,.6,.7,.8, .9,1.,1.1,1.2, 1.3,1.4,1.5,1.6)).round()
-        mat4(0,0,0,0, 0,1,1,1, 1,1,1,1, 1,1,2,2)
-        >>> mat4((-.1,-.2,-.3,-.4, -.5,-.6,-.7,-.8, -.9,-1.,-1.1,-1.2, -1.3,-1.4,-1.5,-1.6)).round()
-        mat4(0,0,0,0, 0,-1,-1,-1, -1,-1,-1,-1, -1,-1,-2,-2)
-        """
-        if ndigits:
-            self.v = [round(x,ndigits) for x in self.v]
-        else:
-            self.v = [round(x) for x in self.v]
-        return self
-
     def transpose(self):
         """
         Exchanges the matrix columns and rows, INPLACE
@@ -320,12 +183,12 @@ class mat4:
             self.v[3], self.v[7], self.v[11], self.v[15]]
         return self
 
-    def invert_simple(self):
+    def inverse_simple(self):
         """
         Inverts a uniformly-scaled, non-skewed matrix, INPLACE
         :return: self
         """
-        self.v = self.invert_simple().v
+        self.v = self.inversed_simple().v
         return self
 
     def set_translate(self, arg3):
@@ -532,18 +395,6 @@ class mat4:
 
     # ------ value-copying methods -------
 
-    def rounded(self, ndigits=None):
-        """
-        Returns a matrix with floor(+.5) applied to all elements
-        :param ndigits: None, or the number of digits
-        :return: mat4
-        >>> mat4((.1,.2,.3,.4, .5,.6,.7,.8, .9,1.,1.1,1.2, 1.3,1.4,1.5,1.6)).rounded()
-        mat4(0,0,0,0, 0,1,1,1, 1,1,1,1, 1,1,2,2)
-        >>> mat4((-.1,-.2,-.3,-.4, -.5,-.6,-.7,-.8, -.9,-1.,-1.1,-1.2, -1.3,-1.4,-1.5,-1.6)).rounded()
-        mat4(0,0,0,0, 0,-1,-1,-1, -1,-1,-1,-1, -1,-1,-2,-2)
-        """
-        return self.copy().round(ndigits)
-
     def transposed(self):
         """
         Returns a mat4 with columns and rows interchanged
@@ -553,7 +404,7 @@ class mat4:
         """
         return self.copy().transpose()
 
-    def inverted_simple(self):
+    def inversed_simple(self):
         """
         Returns inverse of a uniformly-scaled, non-skewed matrix.
         :return: mat4
@@ -650,8 +501,6 @@ class mat4:
         """
         return self.copy().rotate_axis(axis, degree)
 
-
-from pector.vec3 import vec3
 
 if __name__ == "__main__":
     import doctest

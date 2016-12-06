@@ -40,7 +40,7 @@ class CsgBase(TreeNode, GlslBase):
         super(CsgBase, self).__init__(name)
         self._has_transform = transform != mat4()
         self._transform = mat4(transform)
-        self._itransform = self._transform.inverted_simple()
+        self._itransform = self._transform.inversed_simple()
         self._id = abs(self.__hash__())
 
     def __str__(self):
@@ -72,7 +72,7 @@ class CsgBase(TreeNode, GlslBase):
     def set_transform(self, mat):
         self._has_transform = mat != mat4()
         self._transform = mat4(mat)
-        self._itransform = self._transform.inverted_simple()
+        self._itransform = self._transform.inversed_simple()
         return self
     @property
     def has_transform(self):
