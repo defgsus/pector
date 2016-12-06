@@ -3,6 +3,8 @@ import pyshaders
 from csg.glsl import render_glsl
 from pector import vec3, mat4
 
+
+
 vert_src = """
 in vec4 pos;
 varying vec4 v_pos;
@@ -113,16 +115,80 @@ void main()
 }
 """
 
+class Spaceship:
+    def __init__(self):
+        self.delta = 0.01
+        self.reset()
+
+    def reset(self):
+        self.transform = mat4()
+        self.velocity = vec3(0)
+        self.rotate = vec3(0)
+
+    def integrate(self):
+        self.transform.translate(self.velocity * self.delta)
+        self.transform.rotate_y(self.rotate.y * 20. * self.delta)
+        self.transform.rotate_x(self.rotate.x * 20. * self.delta)
+
+        self.velocity -= self.delta * self.velocity
+        self.rotate -= self.delta * self.rotate
+
+    def check_keys(self, keys):
+        if keys[pyglet.window.key.W]:
+            self.velocity.z -= 1
+        if keys[pyglet.window.key.S]:
+            self.velocity.z += 1.
+        if keys[pyglet.window.key.A]:
+            self.velocity.x -= 1.
+        if keys[pyglet.window.key.D]:
+            self.velocity.x += 1.
+        if keys[pyglet.window.key.UP]:
+            self.rotate.x += 1.
+        if keys[pyglet.window.key.DOWN]:
+            self.rotate.x -= 1.
+        if keys[pyglet.window.key.LEFT]:
+            self.rotate.y += 1.
+        if keys[pyglet.window.key.RIGHT]:
+            self.rotate.y -= 1.
+
+    def handle_key(self, sym):
+        if sym == pyglet.window.key.W:
+            self.velocity.z -= 1.
+        if sym == pyglet.window.key.S:
+            self.velocity.z += 1.
+        if sym == pyglet.window.key.A:
+            self.velocity.x -= 1.
+        if sym == pyglet.window.key.D:
+            self.velocity.x += 1.
+        if sym == pyglet.window.key.UP:
+            self.rotate.x += 1.
+        if sym == pyglet.window.key.DOWN:
+            self.rotate.x -= 1.
+        if sym == pyglet.window.key.LEFT:
+            self.rotate.y += 1.
+        if sym == pyglet.window.key.RIGHT:
+            self.rotate.y -= 1.
+
+
+
 class RenderWindow(pyglet.window.Window):
 
     def __init__(self, dist_field):
-        super(RenderWindow, self).__init__(width=640, height=480, resizable=True)
+        super(RenderWindow, self).__init__(width=640, height=480, resizable=True,
+                                           vsync=True)
         self.shader = None
         self.dist_field = dist_field
         self.uv = (0,0)
         self.is_hit = False
         self.hit_pos = vec3()
         self.transform = mat4().translate(vec3(0,0,5)+0.001)
+        self.spaceship = Spaceship()
+        self.spaceship.delta = 1.
+        self.keys = pyglet.window.key.KeyStateHandler()
+        self.push_handlers(self.keys)
+
+        pyglet.clock.schedule_interval(self.update, 1.0 / 20.0)
+        pyglet.clock.set_fps_limit(20)
 
     def compile(self):
         try:
@@ -139,6 +205,12 @@ class RenderWindow(pyglet.window.Window):
     def on_close(self):
         self.shader.clear()
 
+    def update(self, dt):
+        self.spaceship.delta = dt
+        self.spaceship.check_keys(self.keys)
+        self.spaceship.integrate()
+        self.transform = self.spaceship.transform
+
     def on_draw(self):
         self.clear()
         if not self.shader:
@@ -154,11 +226,13 @@ class RenderWindow(pyglet.window.Window):
         pyglet.graphics.draw(6, pyglet.gl.GL_TRIANGLES,
                              ('v2f', (-1,-1, 1,-1, -1,1
                                       ,1,-1, 1,1, -1,1))#(0,0, window.width,0, 0,window.height,
-                                     # window.width,0, window.width,window.height, 0,window.height))
+                             # window.width,0, window.width,window.height, 0,window.height))
                              )
 
     def on_key_press(self, sym, mod):
-        self.close()
+        #self.spaceship.handle_key(sym)
+        if sym == pyglet.window.key.ESCAPE:
+            self.close()
 
     def on_mouse_press(self, x, y, button, modifiers):
         self.y_down = y
@@ -231,6 +305,6 @@ class RenderWindow(pyglet.window.Window):
 
 
 def render_csg(dist_field):
-    RenderWindow(dist_field=dist_field)
+    w = RenderWindow(dist_field=dist_field)
     pyglet.app.run()
 

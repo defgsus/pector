@@ -268,6 +268,9 @@ class TestMat4(TestCase):
         a /= 4
         self.assertEqual(a, mat4(.5))
 
+    def test_mat4_x_mat4(self):
+        pass
+
     def test_mat4_x_vec3(self):
         self.assertEqual(mat4(1) * (1,2,3), vec3(1,2,3))
         self.assertEqual(mat4(2) * (1,2,3), vec3(2,4,6))

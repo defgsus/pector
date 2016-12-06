@@ -49,13 +49,8 @@ class mat_base(vec_base):
     def _multiply(self, l, r):
         # mat * mat
         if len(l) == len(self) == len(r):
-            m = self.__class__()
-            for row in range(self.num_rows()):
-                for col in range(self.num_rows()):
-                    s = 0.
-                    for i in range(self.num_rows()):
-                        s += l[row + i*self.num_rows()] * r[i + col*self.num_rows()]
-                    m.v[row + col*self.num_rows()] = s
+            m = self.__class__(l)
+            m._multiply_inplace(r)
             return m
         # mat4 * vec3
         elif len(l) == 16 and len(r) == 3:
