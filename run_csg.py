@@ -130,7 +130,10 @@ def csg_3():
             Fan(axis=2, angle=(0,30),
                 object=spheres.copy().set_transform(mat4().translate((0,6.,-10.)))
                 )#)
-        ])
+        ]),
+        Repeat(repeat=vec3(4),
+               object=Sphere(radius=0.05)
+               )
         #Difference([
         #    Tube(axis=1, transform=mat4().translate((3,0,0)))
         #])

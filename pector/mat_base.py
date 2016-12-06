@@ -56,7 +56,7 @@ class mat_base(vec_base):
                     for i in range(self.num_rows()):
                         s += l[row + i*self.num_rows()] * r[i + col*self.num_rows()]
                     m.v[row + col*self.num_rows()] = s
-            return
+            return m
         # mat4 * vec3
         elif len(l) == 16 and len(r) == 3:
             return vec3.vec3(

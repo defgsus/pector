@@ -171,19 +171,25 @@ class RenderWindow(pyglet.window.Window):
 
     def on_mouse_drag(self, x, y, dx, dy, but, mod):
         use_pivot = self.is_hit and not but == 4
-        pivot = self.hit_pos if use_pivot else self.transform.position()
-        m = self.transform.copy().set_position((0,0,0))
-        X = m * (1,0,0)
-        Y = m * (0,1,0)
-        self.transform.translate(-pivot)
-        self.transform.rotate_axis(X, dy)
-        self.transform.rotate_axis(Y, -dx)
-        self.transform.translate(pivot)
-        self.move_outside()
+
+        self.transform.rotate_x(dy)
+        self.transform.rotate_y(-dx)
+
+        if use_pivot:
+            pivot = self.transform * self.hit_pos
+            m = self.transform.position_cleared()
+            X = m * (1, 0, 0)
+            Y = m * (0, 1, 0)
+            p = self.transform.position() - self.hit_pos
+            p.rotate_axis(X, dy)
+            p.rotate_axis(Y, -dx)
+            p += self.hit_pos
+            self.transform.set_position(p)
+            self.move_outside()
 
     def on_mouse_scroll(self, x, y, sx, sy):
-        fwd = self.transform.position_cleared() * (0,0,-1)
-        self.transform.translate(fwd * -sy)
+        self.transform.translate((0,0,sy))
+        self.move_outside()
 
 
     def get_uv(self, x, y):
