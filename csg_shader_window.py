@@ -127,8 +127,8 @@ class Spaceship:
 
     def integrate(self):
         self.transform.translate(self.velocity * self.delta)
+        self.transform.rotate_z((self.rotate.y * 12. +self.rotate.z*20.) * self.delta)
         self.transform.rotate_y(self.rotate.y * 20. * self.delta)
-        self.transform.rotate_z(self.rotate.y * 12. * self.delta)
         self.transform.rotate_x(self.rotate.x * 20. * self.delta)
 
         self.velocity -= self.delta * self.velocity
@@ -144,6 +144,10 @@ class Spaceship:
             self.velocity.x -= amt
         if keys[pyglet.window.key.D]:
             self.velocity.x += amt
+        if keys[pyglet.window.key.Q]:
+            self.rotate.z += amt
+        if keys[pyglet.window.key.E]:
+            self.rotate.z -= amt
         if keys[pyglet.window.key.UP]:
             self.rotate.x += amt
         if keys[pyglet.window.key.DOWN]:
