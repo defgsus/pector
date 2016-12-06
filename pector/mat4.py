@@ -1,81 +1,17 @@
 import math
-from pector import vec_base, vec3, tools, const
+from pector import tools, const, mat_base, vec3
 
 
-class mat4(vec_base):
+class mat4(mat_base):
     """
     4x4 anisotropic matrix - column-major order
     """
-    def __init__(self, *arg):
-        if arg is None:
-            self.set(1.)
-        else:
-            self.set(*arg)
-
-    def __unicode__(self):
-        r = "mat4("
-        for i, x in enumerate(self.v):
-            r += "%g" % x
-            if i < len(self)-1:
-                r += ","
-                if i % 4 == 3:
-                    r += " "
-        return r + ")"
 
     def __len__(self):
-        return 16
+        return 16;
 
-    # ------- arithmetic ops --------
-
-    def __mul__(self, arg):
-        if tools.is_number(arg):
-            return self._binary_operator(arg, lambda l, r: l * r)
-        tools.check_float_sequence(arg)
-        return self._multiply(self, arg)
-
-    def __rmul__(self, arg):
-        if tools.is_number(arg):
-            return self._binary_operator(arg, lambda r, l: l * r)
-        tools.check_float_sequence(arg)
-        return self._multiply(arg, self)
-
-    def __imul__(self, arg):
-        if tools.is_number(arg):
-            return self._binary_operator_inplace(arg, lambda l, r: l * r)
-        tools.check_float_sequence(arg, len(self))
-        return self._multiply_inplace(self, arg)
-
-    # --- helper ---
-
-    @classmethod
-    def _multiply(cls, l, r):
-        # mat4 * mat4
-        if len(l) == 16 and len(r) == 16:
-            r = mat4()
-            for i in range(4):
-                r.v[i +  0] = l[ 0] * r[i + 0] + l[ 1] * r[i + 4] + l[ 2] * r[i + 8] + l[ 3] * r[i + 12]
-                r.v[i +  4] = l[ 4] * r[i + 0] + l[ 5] * r[i + 4] + l[ 6] * r[i + 8] + l[ 7] * r[i + 12]
-                r.v[i +  8] = l[ 8] * r[i + 0] + l[ 9] * r[i + 4] + l[10] * r[i + 8] + l[11] * r[i + 12]
-                r.v[i + 12] = l[12] * r[i + 0] + l[13] * r[i + 4] + l[14] * r[i + 8] + l[15] * r[i + 12]
-            return r
-        # mat4 * vec3
-        elif len(l) == 16 and len(r) == 3:
-            return vec3((
-                l[0] * r[0] + l[4] * r[1] + l[8 ] * r[2] + l[12],
-                l[1] * r[0] + l[5] * r[1] + l[9 ] * r[2] + l[13],
-                l[2] * r[0] + l[6] * r[1] + l[10] * r[2] + l[14] ))
-        else:
-            raise TypeError("Can not matrix-multiply %s (%d) with %s (%d)" % (
-                                type(l), len(l), type(r), len(r) ))
-
-    def _multiply_inplace(self, m):
-        sv = list(self.v)
-        for i in range(4):
-            self.v[i +  0] = sv[ 0] * m[i + 0] + sv[ 1] * m[i + 4] + sv[ 2] * m[i + 8] + sv[ 3] * m[i + 12]
-            self.v[i +  4] = sv[ 4] * m[i + 0] + sv[ 5] * m[i + 4] + sv[ 6] * m[i + 8] + sv[ 7] * m[i + 12]
-            self.v[i +  8] = sv[ 8] * m[i + 0] + sv[ 9] * m[i + 4] + sv[10] * m[i + 8] + sv[11] * m[i + 12]
-            self.v[i + 12] = sv[12] * m[i + 0] + sv[13] * m[i + 4] + sv[14] * m[i + 8] + sv[15] * m[i + 12]
-        return self
+    def num_rows(self):
+        return 4
 
     # ----- public API getter ------
 
@@ -113,46 +49,12 @@ class mat4(vec_base):
 
     # ---- public API setter -----
 
-    def set_identity(self, val=1.):
+    def inverse_simple(self):
         """
-        Sets the identity matrix
-        :param val: The identity value, default = 1.
+        Inverts a uniformly-scaled, non-skewed matrix, INPLACE
         :return: self
-        >>> mat4().set_identity()
-        mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1)
-        >>> mat4().set_identity(2)
-        mat4(2,0,0,0, 0,2,0,0, 0,0,2,0, 0,0,0,2)
         """
-        arg = tools.check_float_number(val)
-        self.v = [arg, 0., 0., 0., 0., arg, 0., 0., 0., 0., arg, 0., 0., 0., 0., arg]
-        return self
-
-    def set(self, *arg):
-        """
-        Sets the content of the matrix
-        :param arg: either a float, to set the identity or a float sequence of length 16
-        :return: self
-        >>> mat4().set(1)
-        mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1)
-        >>> mat4().set(1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)
-        mat4(1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)
-        >>> mat4().set((1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16))
-        mat4(1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)
-        """
-        if not arg:
-            arg = 1.
-        else:
-            if len(arg) == 1:
-                arg = arg[0]
-
-        if tools.is_number(arg):
-            arg = float(arg)
-            self.v = [arg,0.,0.,0., 0.,arg,0.,0., 0.,0.,arg,0., 0.,0.,0.,arg]
-            return self
-
-        tools.check_float_sequence(arg, len(self))
-
-        self.v = [float(x) for x in arg]
+        self.v = self.inversed_simple().v
         return self
 
     def set_position(self, arg3):
@@ -169,28 +71,6 @@ class mat4(vec_base):
         self.v[14] = float(arg3[2])
         return self
 
-    def transpose(self):
-        """
-        Exchanges the matrix columns and rows, INPLACE
-        :return: self
-        >>> mat4((1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)).transpose()
-        mat4(1,5,9,13, 2,6,10,14, 3,7,11,15, 4,8,12,16)
-        """
-        self.v = [
-            self.v[0], self.v[4], self.v[8], self.v[12],
-            self.v[1], self.v[5], self.v[9], self.v[13],
-            self.v[2], self.v[6], self.v[10], self.v[14],
-            self.v[3], self.v[7], self.v[11], self.v[15]]
-        return self
-
-    def inverse_simple(self):
-        """
-        Inverts a uniformly-scaled, non-skewed matrix, INPLACE
-        :return: self
-        """
-        self.v = self.inversed_simple().v
-        return self
-
     def set_translate(self, arg3):
         """
         Initializes the matrix with a translation transform, INPLACE
@@ -204,27 +84,6 @@ class mat4(vec_base):
         self.v[12] = float(arg3[0])
         self.v[13] = float(arg3[1])
         self.v[14] = float(arg3[2])
-        return self
-
-    def set_scale(self, arg):
-        """
-        Initializes the matrix with a scale transform, INPLACE
-        :param arg: either a float or a float sequence of length 3
-        :return: self
-        >>> mat4().set_scale(2)
-        mat4(2,0,0,0, 0,2,0,0, 0,0,2,0, 0,0,0,1)
-        >>> mat4().set_scale((2,3,4))
-        mat4(2,0,0,0, 0,3,0,0, 0,0,4,0, 0,0,0,1)
-        """
-        if tools.is_number(arg):
-            self.set(arg)
-            self.v[15] = 1.
-            return self
-        tools.check_float_sequence(arg, 3)
-        self.set_identity()
-        self.v[0] = float(arg[0])
-        self.v[5] = float(arg[1])
-        self.v[10] = float(arg[2])
         return self
 
     def set_rotate_x(self, degree):
@@ -327,20 +186,6 @@ class mat4(vec_base):
         mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 1,2,3,1)
         """
         m = mat4().set_translate(arg3)
-        self._multiply_inplace(m)
-        return self
-
-    def scale(self, arg):
-        """
-        Scales the current matrix, INPLACE
-        :param arg3: single float or float sequence of length 3
-        :return: self
-        >>> mat4().scale(2)
-        mat4(2,0,0,0, 0,2,0,0, 0,0,2,0, 0,0,0,1)
-        >>> mat4().scale((2,3,4))
-        mat4(2,0,0,0, 0,3,0,0, 0,0,4,0, 0,0,0,1)
-        """
-        m = mat4().set_scale(arg)
         self._multiply_inplace(m)
         return self
 
@@ -447,18 +292,6 @@ class mat4(vec_base):
         mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 1,2,3,1)
         """
         return self.copy().translate(arg3)
-
-    def scaled(self, arg):
-        """
-        Returns a scaled matrix
-        :param arg3: single float or float sequence of length 3
-        :return: mat4
-        >>> mat4().scaled(2)
-        mat4(2,0,0,0, 0,2,0,0, 0,0,2,0, 0,0,0,1)
-        >>> mat4().scaled((2,3,4))
-        mat4(2,0,0,0, 0,3,0,0, 0,0,4,0, 0,0,0,1)
-        """
-        return self.copy().scale(arg)
 
     def rotated_x(self, degree):
         """

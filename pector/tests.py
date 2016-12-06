@@ -1,6 +1,5 @@
 from unittest import TestCase
-from vec3 import vec3
-from mat4 import mat4
+from pector import vec3, mat4
 
 
 class TestVec3(TestCase):
@@ -194,12 +193,12 @@ class TestMat4(TestCase):
         pass
 
     def test_assignment(self):
-        self.assertEqual(str(mat4()), "mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1)")
-        self.assertEqual(str(mat4(2)), "mat4(2,0,0,0, 0,2,0,0, 0,0,2,0, 0,0,0,2)")
-        self.assertEqual(str(mat4(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)),
-                         "mat4(1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)")
-        self.assertEqual(str(mat4((1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16))),
-                         "mat4(1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)")
+        self.assertEqual("mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1)", str(mat4()))
+        self.assertEqual("mat4(2,0,0,0, 0,2,0,0, 0,0,2,0, 0,0,0,2)", str(mat4(2)))
+        self.assertEqual("mat4(1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)",
+                         str(mat4(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)))
+        self.assertEqual("mat4(1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)",
+                         str(mat4((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16))))
 
     def test_equal(self):
         self.assertEqual(mat4(1), (1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1))
@@ -227,8 +226,8 @@ class TestMat4(TestCase):
         self.assertEqual(mat4(-0.5), mat4(-0.51).round(1))
 
     def test_aritm(self):
-        self.assertEqual(mat4(1)+mat4(2), mat4(3))
-        self.assertEqual(mat4(2)-mat4(1), mat4(1))
+        self.assertEqual(mat4(3), mat4(1)+mat4(2))
+        self.assertEqual(mat4(1), mat4(2)-mat4(1))
 
     def test_has_translation(self):
         self.assertFalse(mat4(1).has_translation())
@@ -242,12 +241,12 @@ class TestMat4(TestCase):
         self.assertTrue(mat4(1).rotate_x(0.01).has_rotation())
 
     def test_transpose(self):
-        self.assertEqual(mat4((1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)).transpose(),
-                         mat4((1,5,9,13, 2,6,10,14, 3,7,11,15, 4,8,12,16)))
-        self.assertEqual(mat4((1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)).transposed(),
-                         mat4((1,5,9,13, 2,6,10,14, 3,7,11,15, 4,8,12,16)))
-        self.assertEqual(mat4((1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)).transposed().transposed(),
-                         mat4((1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)))
+        self.assertEqual(mat4((1,5,9,13, 2,6,10,14, 3,7,11,15, 4,8,12,16)),
+                         mat4((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)).transpose())
+        self.assertEqual(mat4((1,5,9,13, 2,6,10,14, 3,7,11,15, 4,8,12,16)),
+                         mat4((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)).transposed())
+        self.assertEqual(mat4((1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)),
+                         mat4((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)).transposed().transposed())
 
     def test_scalar_aritm(self):
         self.assertEqual(mat4(1) + 1, mat4((2,1,1,1, 1,2,1,1, 1,1,2,1, 1,1,1,2)))
@@ -295,10 +294,10 @@ class TestMat4(TestCase):
 
     def test_rotate(self):
         self.assertEqual( (mat4().rotate_x(90) * (1,2,3)).round(), vec3((1,-3,2)) )
-        self.assertEqual( (mat4().rotate_x(90).rotate_y(90) * (1,2,3)).round(), vec3((2,-3,-1)) )
-        self.assertEqual( (mat4().rotate_x(90).rotate_y(90).rotate_z(90) * (1,2,3)).round(), vec3((3,2,-1)) )
+        self.assertEqual( (mat4().rotate_y(90).rotate_x(90) * (1,2,3)).round(), vec3((2,-3,-1)) )
+        self.assertEqual( (mat4().rotate_z(90).rotate_y(90).rotate_x(90) * (1,2,3)).round(), vec3((3,2,-1)) )
 
-        self.assertEqual( (mat4().rotate_axis((1,0,0),90).rotate_axis((0,1,0), 90).rotate_axis((0,0,1), 90)
+        self.assertEqual( (mat4().rotate_axis((0,0,1),90).rotate_axis((0,1,0), 90).rotate_axis((1,0,0), 90)
                             * (1,2,3)).round(), vec3((3,2,-1)) )
 
     def test_compare_rotate_vec(self):
@@ -307,8 +306,8 @@ class TestMat4(TestCase):
         self.assertAlmostEquals( mat4().rotate_y(90) * v, v.rotated_y(90) )
         self.assertAlmostEquals( mat4().rotate_z(90) * v, v.rotated_z(90) )
 
-        self.assertAlmostEquals( mat4().rotate_z(90).rotate_y(-90) * v, v.rotated_z(90).rotated_y(-90) )
-        self.assertAlmostEquals( mat4().rotate_z(90).rotate_y(-90).rotated_x(90) * v,
+        self.assertAlmostEquals( mat4().rotate_y(-90).rotate_z(90) * v, v.rotated_z(90).rotated_y(-90) )
+        self.assertAlmostEquals( mat4().rotate_x(90).rotate_y(-90).rotate_z(90) * v,
                                      v.rotated_z(90).rotated_y(-90).rotated_x(90) )
 
     def test_scale(self):
@@ -319,7 +318,7 @@ class TestMat4(TestCase):
 
     def test_position(self):
         self.assertEqual( mat4().translate((1,2,3)).position(), (1,2,3))
-        self.assertEqual( mat4().translate((1,2,3)).rotate_x(90).position(), (1,-3,2))
-        self.assertEqual( mat4().rotate_x(90).translate((1,2,3)).position(), (1,2,3))
+        self.assertEqual( mat4().rotate_x(90).translate((1,2,3)).position(), (1,-3,2))
+        self.assertEqual( mat4().translate((1,2,3)).rotate_x(90).position(), (1,2,3))
         a = mat4().rotate_x(90).translate((1,2,3))
         self.assertEqual(a.position(), a * (0,0,0))

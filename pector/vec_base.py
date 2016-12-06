@@ -45,6 +45,22 @@ class vec_base:
     # --- boolean equality ---
 
     def __eq__(self, other):
+        """
+        Compares the vector with another vector or number.
+        :param other:
+        :return:
+        >>> vec3(1,2,3) == vec3(1,2,3)
+        True
+        >>> vec3() == mat4()
+        False
+        >>> vec3(1,1,1) == 1
+        True
+        """
+        if tools.is_number(other):
+            for i in range(len(self)):
+                if not self.v[i] == other:
+                    return False
+            return True
         tools.check_float_sequence(other)
         if not len(other) == len(self):
             return False
