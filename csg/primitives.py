@@ -29,7 +29,7 @@ class Sphere(Primitive):
 
 class Tube(Primitive):
     def __init__(self, radius = 1., axis=0, transform = mat4()):
-        super(Tube, self).__init__(name="sphere", transform=transform)
+        super(Tube, self).__init__(name="tube", transform=transform)
         self.radius = tools.check_float_number(radius)
         if axis < 0 or axis > 2:
             raise ValueError("Illegal axis argument %d" % axis)
@@ -54,4 +54,24 @@ class Tube(Primitive):
         elif self.axis == 2:
             swizz = "xy"
         return "length(%s.%s) - %s" % (pos, swizz, to_glsl(self.radius))
+
+
+class Plane(Primitive):
+    def __init__(self, normal=vec3(0,1,0), transform = mat4()):
+        super(Plane, self).__init__(name="plane", transform=transform)
+        self.normal = vec3(normal)
+
+    def param_string(self):
+        return "normal=%s" % self.normal
+
+    def copy(self):
+        return Plane(normal=self.normal, transform=self.transform)
+
+    def get_distance(self, pos):
+        pos = self.pos_to_local(pos)
+        return pos.dot(self.normal)
+
+    def get_glsl_inline(self, pos):
+        pos = self.get_glsl_transform(pos)
+        return "dot(%s, %s)" % (pos, to_glsl(self.normal))
 

@@ -85,7 +85,7 @@ class Fan(DeformBase):
 
         ang = math.atan2(pos[swizz0], pos[swizz1])
         leng = math.sqrt(pos[swizz0]*pos[swizz0] + pos[swizz1]*pos[swizz1])
-        ang = (ang - start) % len - len/2
+        ang = (ang - start) % len - len/2 + self.angle[0] * DEG_TO_TWO_PI
         pos[swizz0] = leng * math.sin(ang)
         pos[swizz1] = leng * math.cos(ang)
         return self.contained_object().get_distance(pos)
@@ -102,11 +102,12 @@ class Fan(DeformBase):
         swizz = self.get_swizzle()
         code = """
 vec3 fan_transform_%(swizz)s(in vec3 pos, in float center, in float range) {
-    float start = (center - range/2.) * %(D2P)s,
-          m = (range) * %(D2P)s,
+    center *= %(D2P)s;
+    range *= %(D2P)s;
+    float start = (center - range/2.),
           ang = atan(pos.%(swizz0)s, pos.%(swizz1)s),
           len = length(pos.%(swizz)s);
-    ang = mod(ang - start, m) - m/2.;
+    ang = mod(ang-start, range) - range/2. + center;
     pos.%(swizz)s = len * vec2(sin(ang), cos(ang));
     return pos;
 }""" % {    "D2P": to_glsl(DEG_TO_TWO_PI),

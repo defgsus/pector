@@ -128,46 +128,30 @@ class Spaceship:
     def integrate(self):
         self.transform.translate(self.velocity * self.delta)
         self.transform.rotate_y(self.rotate.y * 20. * self.delta)
+        self.transform.rotate_z(self.rotate.y * 12. * self.delta)
         self.transform.rotate_x(self.rotate.x * 20. * self.delta)
 
         self.velocity -= self.delta * self.velocity
         self.rotate -= self.delta * self.rotate
 
     def check_keys(self, keys):
+        amt = self.delta * 4
         if keys[pyglet.window.key.W]:
-            self.velocity.z -= 1
+            self.velocity.z -= amt * max(1.,min(8., 1.-.2*self.velocity.z))
         if keys[pyglet.window.key.S]:
-            self.velocity.z += 1.
+            self.velocity.z += amt * max(1.,min(8., 1.+.2*self.velocity.z))
         if keys[pyglet.window.key.A]:
-            self.velocity.x -= 1.
+            self.velocity.x -= amt
         if keys[pyglet.window.key.D]:
-            self.velocity.x += 1.
+            self.velocity.x += amt
         if keys[pyglet.window.key.UP]:
-            self.rotate.x += 1.
+            self.rotate.x += amt
         if keys[pyglet.window.key.DOWN]:
-            self.rotate.x -= 1.
+            self.rotate.x -= amt
         if keys[pyglet.window.key.LEFT]:
-            self.rotate.y += 1.
+            self.rotate.y += amt
         if keys[pyglet.window.key.RIGHT]:
-            self.rotate.y -= 1.
-
-    def handle_key(self, sym):
-        if sym == pyglet.window.key.W:
-            self.velocity.z -= 1.
-        if sym == pyglet.window.key.S:
-            self.velocity.z += 1.
-        if sym == pyglet.window.key.A:
-            self.velocity.x -= 1.
-        if sym == pyglet.window.key.D:
-            self.velocity.x += 1.
-        if sym == pyglet.window.key.UP:
-            self.rotate.x += 1.
-        if sym == pyglet.window.key.DOWN:
-            self.rotate.x -= 1.
-        if sym == pyglet.window.key.LEFT:
-            self.rotate.y += 1.
-        if sym == pyglet.window.key.RIGHT:
-            self.rotate.y -= 1.
+            self.rotate.y -= amt
 
 
 
@@ -183,6 +167,7 @@ class RenderWindow(pyglet.window.Window):
         self.hit_pos = vec3()
         self.transform = mat4().translate(vec3(0,0,5)+0.001)
         self.spaceship = Spaceship()
+        self.spaceship.transform = self.transform
         self.spaceship.delta = 1.
         self.keys = pyglet.window.key.KeyStateHandler()
         self.push_handlers(self.keys)
@@ -210,6 +195,7 @@ class RenderWindow(pyglet.window.Window):
         self.spaceship.check_keys(self.keys)
         self.spaceship.integrate()
         self.transform = self.spaceship.transform
+        self.move_outside()
 
     def on_draw(self):
         self.clear()
@@ -286,7 +272,8 @@ class RenderWindow(pyglet.window.Window):
                 (t[3], t[7], t[11], t[15]),)
 
     def move_outside(self):
-        limit = .1
+        return
+        limit = .01
         min_step = .2
         p = self.transform.position()
         d = self.dist_field.get_distance(p)
