@@ -24,15 +24,6 @@ class mat4(mat_base):
         """
         return vec3(self.v[12:15])
 
-    def get_3x3(self):
-        """
-        Returns the top-left 3x3 matrix
-        :return: *CURRENTLY* a list of floats
-        """
-        return [self.v[0], self.v[1], self.v[2],
-                self.v[4], self.v[5], self.v[6],
-                self.v[8], self.v[9], self.v[10]]
-
     # ---- public API setter -----
 
     def inverse_simple(self):

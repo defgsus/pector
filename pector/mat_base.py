@@ -21,6 +21,26 @@ class mat_base(vec_base):
     def num_rows(self):
         raise NotImplementedError
 
+    def as_list_list(self, row_major=False):
+        """
+        Returns the matrix as list of lists
+        :param row_major: If true, ordering will be row-major, otherwise native column-major
+        :return: list of lists
+        >>> mat3(1,2,3,4,5,6,7,8,9).as_list_list()
+        [[1,2,3], [4,5,6], [7,8,9]]
+        >>> mat3(1,2,3,4,5,6,7,8,9).as_list_list(row_major=True)
+        [[1,4,7], [2,5,8], [3,6,9]]
+        """
+        ret = []
+        if not row_major:
+            for c in range(self.num_rows()):
+                ret.append(self.v[c*self.num_rows():(c+1)*self.num_rows()])
+        else:
+            for c in range(self.num_rows()):
+                ret.append([self.v[c+r*self.num_rows()] for r in range(self.num_rows())])
+
+        return ret
+
     # ------- arithmetic ops --------
 
     def __mul__(self, arg):
@@ -115,7 +135,8 @@ class mat_base(vec_base):
     def set(self, *arg):
         """
         Sets the content of the matrix
-        :param arg: either a float, to set the identity or a float sequence of length 16
+        :param arg: either a single float to set the identity,
+        or a mixture of floats and float sequences
         :return: self
         >>> mat4().set(1)
         mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1)
@@ -123,6 +144,8 @@ class mat_base(vec_base):
         mat4(1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)
         >>> mat4().set((1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16))
         mat4(1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)
+        >>> mat3().set(vec3(1), (2,3,4), 5,(6,7,))
+        mat3(1,1,1, 2,3,4, 5,6,7)
         """
         if arg and len(arg) == 1 and tools.is_number(arg[0]):
             self.set_identity(float(arg[0]))

@@ -159,13 +159,27 @@ class vec_base:
     def set(self, *arg):
         """
         Set the values of this vector
-        :param arg: float number(s) or sequence
+        :param arg: a single float to set all components equally, 
+        or a mixture of floats and float sequences
         :return: self
         """
-        if len(arg) == 1 and tools.is_number(arg[0]):
-            arg = float(arg[0])
-            self.v = [arg for i in range(len(self))]
-            return self
+        if len(arg) == 1:
+            if tools.is_number(arg[0]):
+                arg = float(arg[0])
+                self.v = [arg for i in range(len(self))]
+                return self
+
+            if tools.is_float_sequence(arg[0]):
+                o = arg[0]
+                # mat4 -> mat3
+                if len(o) == 16 and len(self) == 9:
+                    self.v = [o[0], o[1], o[2],  o[4], o[5], o[6],  o[8], o[9], o[10]]
+                    return self
+                # mat3 -> mat4
+                if len(o) == 9 and len(self) == 16:
+                    self.v = [o[0], o[1], o[2], 0., o[3], o[4], o[5], 0., 
+                              o[6], o[7], o[8], 0., 0.,0.,0.,1.]
+                    return self
 
         self.v = [0. for i in range(len(self))]
         num_copied = 0

@@ -208,7 +208,7 @@ class RenderWindow(pyglet.window.Window):
         if "u_hit_pos" in self.shader.uniforms:
             self.shader.uniforms.u_hit_pos = tuple(self.hit_pos)
         if "u_transform" in self.shader.uniforms:
-            self.shader.uniforms.u_transform = self.matrix_tuple(self.transform)
+            self.shader.uniforms.u_transform = self.transform.as_list_list(row_major=True)
         pyglet.graphics.draw(6, pyglet.gl.GL_TRIANGLES,
                              ('v2f', (-1,-1, 1,-1, -1,1
                                       ,1,-1, 1,1, -1,1))#(0,0, window.width,0, 0,window.height,
@@ -216,7 +216,6 @@ class RenderWindow(pyglet.window.Window):
                              )
 
     def on_key_press(self, sym, mod):
-        #self.spaceship.handle_key(sym)
         if sym == pyglet.window.key.ESCAPE:
             self.close()
 
@@ -263,13 +262,6 @@ class RenderWindow(pyglet.window.Window):
         m.set_position((0,0,0))
         rd = m * vec3(self.uv[0], self.uv[1], -1.2).normalize()
         return (ro, rd)
-
-    def matrix_tuple(self, t):
-        # TODO: add such a conversion to mat4
-        return ((t[0], t[4], t[8], t[12]),
-                (t[1], t[5], t[9], t[13]),
-                (t[2], t[6], t[10], t[14]),
-                (t[3], t[7], t[11], t[15]),)
 
     def move_outside(self):
         return

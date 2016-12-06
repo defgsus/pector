@@ -211,6 +211,14 @@ class TestMat3(TestCase):
     def test_equal(self):
         self.assertEqual(mat3(1), (1,0,0, 0,1,0, 0,0,1))
 
+    def test_as_list(self):
+        self.assertEqual([[1,2,3], [4,5,6], [7,8,9]], mat3(1,2,3,4,5,6,7,8,9).as_list_list())
+        self.assertEqual([[1,4,7], [2,5,8], [3,6,9]], mat3(1,2,3,4,5,6,7,8,9).as_list_list(row_major=True))
+
+    def test_mat4_mat3_conversion(self):
+        self.assertEqual(mat4(1,2,3,0, 4,5,6,0, 7,8,9,0, 0,0,0,1), mat4(mat3(1,2,3, 4,5,6, 7,8,9)))
+        self.assertEqual(mat3(1,2,3, 5,6,7, 9,10,11), mat3(mat4(1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)))
+
     def test_floor(self):
         self.assertEqual(mat3(1), mat3(1.4).floor())
         self.assertEqual(mat3(1), mat3(1.5).floor())
