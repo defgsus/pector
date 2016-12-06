@@ -14,7 +14,7 @@ class mat_base(vec_base):
             r += "%g" % x
             if i < len(self)-1:
                 r += ","
-                if i % self.num_rows() == 3:
+                if i % self.num_rows() == self.num_rows()-1:
                     r += " "
         return r + ")"
 
@@ -55,6 +55,12 @@ class mat_base(vec_base):
                 l[0] * r[0] + l[4] * r[1] + l[8 ] * r[2] + l[12],
                 l[1] * r[0] + l[5] * r[1] + l[9 ] * r[2] + l[13],
                 l[2] * r[0] + l[6] * r[1] + l[10] * r[2] + l[14] )
+        # mat3 * vec3
+        elif len(l) == 9 and len(r) == 3:
+            return vec3.vec3(
+                l[0] * r[0] + l[3] * r[1] + l[6] * r[2] ,
+                l[1] * r[0] + l[4] * r[1] + l[7] * r[2] ,
+                l[2] * r[0] + l[5] * r[1] + l[8] * r[2] )
         else:
             raise TypeError("Can not matrix-multiply %s (%d) with %s (%d)" % (
                                 type(l), len(l), type(r), len(r) ))
@@ -151,9 +157,9 @@ class mat_base(vec_base):
             if self.num_rows() > 3:
                 self.v[-1] = 1.
             return self
-        tools.check_float_sequence(arg, self.num_rows()-1)
-        self.set_identity()
         num = self.num_rows()-1 if self.num_rows() > 3 else self.num_rows()
+        tools.check_float_sequence(arg, num)
+        self.set_identity()
         for i in range(num):
             self.v[i * (self.num_rows()+1)] = float(arg[i])
         return self
