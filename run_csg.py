@@ -32,11 +32,13 @@ def render(csg):
 
 
 def csg_0():
-    return Union([
+    o = Union([
         Sphere(transform=mat4().translate((-1,0,0))),
-        Sphere(),
-        Sphere(transform=mat4().translate((+1, 0, 0))),
+        Sphere(radius=.75),
+        Sphere(transform=mat4().translate((+1, 0, 0)), radius=.5),
     ])
+    #o = Fan(o.set_transform(mat4().translate((0,3,0))), axis=2, angle=(0,90))
+    return o
 
 
 def csg_1():
@@ -111,13 +113,13 @@ def csg_rnd():
 
 def csg_3():
     spheres = Union([
-            Fan(axis=2, angle=(-30,30),
+            Fan(axis=2, angle=(0, 90),
                 object=Sphere(transform=mat4().translate((0,2,0)))
                 ),
-            Fan(axis=2, angle=(-30, 30),
+            Fan(axis=2, angle=(0, 90),
                 object=Sphere(radius=.5, transform=mat4().translate((0, 3.5, 0)))
                 ),
-            Fan(axis=2, angle=(-30, 30), transform=mat4().rotate_z(30),
+            Fan(axis=2, angle=(0, 90), transform=mat4().rotate_z(30),
                 object=Sphere(radius=.25, transform=mat4().translate((0, 2.5, 0)))
                 ),
         ])
@@ -125,7 +127,7 @@ def csg_3():
         Union([
             spheres.copy(),
             #Repeat(repeat=vec3(20,20,0), object=
-            Fan(axis=2, angle=(-15,15),
+            Fan(axis=2, angle=(0,30),
                 object=spheres.copy().set_transform(mat4().translate((0,6.,-10.)))
                 )#)
         ])
@@ -138,19 +140,26 @@ def csg_4():
     cones = Intersection([
         Tube(radius=5),
         Repeat(repeat=vec3(0,2,2),
-               object=Difference([
-                    Tube(radius=.5),
-                    Repeat(repeat=(0.81,0,0),
-                           object=Fan(axis=0, angle=(-360./12.,360./12.),
-                                      object=Sphere(radius=0.4, transform=mat4().translate((0,0,.59)))
-                                     )
-                          ),
-                    Repeat(repeat=(0.05, 0, 0),
-                           object=Fan(axis=0, angle=(-2, 2),
-                                      object=Sphere(radius=0.02, transform=mat4().translate((0, 0, .5)))
-                                     )
-                          )
-                    ])
+               object=DeformFunction(py_func=lambda pos: pos.rotate_x(pos.x),
+                                     glsl_func="""
+                                     float a = pos.x;
+                                     mat2 r = mat2(cos(a), sin(a), -sin(a), cos(a));
+                                     pos.yz = r * pos.yz;
+                                     """,
+                    object = Difference([
+                        Tube(radius=.5),
+                        Repeat(repeat=(0.81,0,0),
+                               object=Fan(axis=0, angle=(-360./12.,360./12.),
+                                          object=Sphere(radius=0.4, transform=mat4().translate((0,0,.59)))
+                                         )
+                              ),
+                        Repeat(repeat=(0.05, 0, 0),
+                               object=Fan(axis=0, angle=(-2, 2),
+                                          object=Sphere(radius=0.02, transform=mat4().translate((0, 0, .5)))
+                                         )
+                              )
+                        ])
+                   )
                )
         ])
     return Union([
@@ -158,8 +167,20 @@ def csg_4():
         cones.copy().set_transform(mat4().rotate_z(45).translate((0, 0, -10)))
     ])
 
+def csg_5():
+    o = Tube(radius=0.1, axis=1)
+    o = Fan(o, axis=2)
+    o = Repeat(o, repeat=(2,2,0))
+    o = Fan(o, axis=2, angle=(0,60))
+    o = Repeat(o, repeat=(5,5,0))
+    o = Fan(o, axis=2, angle=(0, 90))
+    o = Fan(o.set_transform(mat4().translate((0,0,6))), axis=1, angle=(-30,+30))
+    o = Fan(o, axis=2, angle=(0, 60))
+    o = Repeat(o, repeat=vec3(36,36,0))
 
-c = csg_1()
-print( csg.glsl.render_glsl(c) )
+    return o;
+
+c = csg_5()
+#print( csg.glsl.render_glsl(c) )
 #render(c)
 csg_shader_window.render_csg(c)

@@ -81,6 +81,10 @@ class CsgBase(TreeNode, GlslBase):
     def pos_to_local(self, pos):
         return self._itransform * pos if self.has_transform else vec3(pos)
 
+    def get_glsl_static_functions(self):
+        """Should return a list of helper functions, if needed."""
+        return []
+
     def copy(self):
         raise NotImplementedError
 

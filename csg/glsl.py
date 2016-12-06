@@ -42,6 +42,7 @@ def render_glsl(csg, indent="    "):
         def __init__(self):
             self.code = ""
             self.id = 0
+            self.static_funcs = set()
 
         def visit(self, node):
             body = node.get_glsl_function_body()
@@ -51,12 +52,17 @@ def render_glsl(csg, indent="    "):
                 self.code += "\nfloat %s(in vec3 pos) {\n" % node.get_glsl_function_name()
                 self.code += indent_code(body, indent) + "\n"
                 self.code += "}\n"
+            funcs = node.get_glsl_static_functions()
+            for i in funcs:
+                self.static_funcs.add(i)
 
-    code = "/*\n%s*/\n" % csg.render_node_tree(lambda node: repr(node))
+    code = "/*\n%s*/\n\n" % csg.render_node_tree(lambda node: repr(node))
 
     # render needed functions
     f = FuncVisitor()
     f.traverse_reverse(csg)
+    for i in f.static_funcs:
+        code += i.strip() + "\n\n"
     code += f.code
 
     # render main function

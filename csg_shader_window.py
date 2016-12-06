@@ -63,7 +63,7 @@ vec3 light(in vec3 p, in vec3 n, in vec3 refl, in vec3 lp, in vec3 co)
 
 void get_ray(in vec2 uv, out vec3 ro, out vec3 rd)
 {
-    ro = vec3(1,2,5.)+0.0001;
+    ro = vec3(0,0,0);
     rd = normalize(vec3(uv, -1.2));
 
     ro = (u_transform * vec4(ro, 1.)).xyz;
@@ -122,13 +122,15 @@ class RenderWindow(pyglet.window.Window):
         self.uv = (0,0)
         self.is_hit = False
         self.hit_pos = vec3()
-        self.transform = mat4().rotate_y(90)
+        self.transform = mat4().translate(vec3(0,0,5)+0.001)
 
     def compile(self):
         try:
+            frag = frag_src % {"DE": render_glsl(self.dist_field)}
+            print(frag)
             self.shader = pyshaders.from_string(
                                 vert_src,
-                                frag_src % { "DE": render_glsl(self.dist_field) } )
+                                frag )
             self.shader.use()
         except pyshaders.ShaderCompilationError as e:
             print(e.logs)
@@ -165,17 +167,20 @@ class RenderWindow(pyglet.window.Window):
         t = self.dist_field.sphere_trace(ray[0], ray[1])
         self.is_hit = t > 0.
         self.hit_pos = ray[0] + ray[1] * t
-        print("ro %s, rd %s, t %g, hit %s" % (ray[0], ray[1], t, self.hit_pos))
+        #print("ro %s, rd %s, t %g, hit %s" % (ray[0], ray[1], t, self.hit_pos))
 
     def on_mouse_drag(self, x, y, dx, dy, but, mod):
+        m = self.transform.copy().set_position((0,0,0))
+        X = m * (1,0,0)
+        Y = m * (0,1,0)
         if self.is_hit:
-            m = self.transform.copy().set_position((0,0,0))
-            X = m * (1,0,0)
-            Y = m * (0,1,0)
             self.transform.translate(-self.hit_pos)
-            self.transform.rotate_axis(X, dy)
-            self.transform.rotate_axis(Y, -dx)
+        self.transform.rotate_axis(X, dy)
+        self.transform.rotate_axis(Y, -dx)
+        if self.is_hit:
             self.transform.translate(self.hit_pos)
+
+
 
 
     def get_uv(self, x, y):
@@ -184,7 +189,7 @@ class RenderWindow(pyglet.window.Window):
 
     def get_ray(self, x, y):
         self.uv = self.get_uv(x, y)
-        ro = self.transform * (vec3(1, 2, 5.) + 0.0001)
+        ro = self.transform.position()
         m = self.transform.copy()
         m.set_position((0,0,0))
         rd = m * vec3(self.uv[0], self.uv[1], -1.2).normalize()
