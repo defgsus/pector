@@ -170,7 +170,7 @@ class vec3(vec_base):
         >>> vec3((0,1,0)).crossed((0,0,1))
         vec3(1, 0, 0)
         """
-        return vec3(self.v).cross(arg3)
+        return self.copy().cross(arg3)
 
     def reflected(self, norm):
         """
@@ -181,7 +181,7 @@ class vec3(vec_base):
         >>> vec3((2,-1,0)).reflected((0,1,0)).rounded()
         vec3(2, 1, 0)
         """
-        return vec3(self.v).reflect(norm)
+        return self.copy().reflect(norm)
 
     def rotated_x(self, degree):
         """
@@ -191,7 +191,7 @@ class vec3(vec_base):
         >>> vec3((1,2,3)).rotated_x(90).rounded()
         vec3(1, -3, 2)
         """
-        return vec3(self).rotate_x(degree)
+        return self.copy().rotate_x(degree)
 
     def rotated_y(self, degree):
         """
@@ -201,7 +201,7 @@ class vec3(vec_base):
         >>> vec3((1,2,3)).rotated_y(90).rounded()
         vec3(3, 2, -1)
         """
-        return vec3(self).rotate_y(degree)
+        return self.copy().rotate_y(degree)
 
     def rotated_z(self, degree):
         """
@@ -211,7 +211,7 @@ class vec3(vec_base):
         >>> vec3((1,2,3)).rotated_z(90).rounded()
         vec3(-2, 1, 3)
         """
-        return vec3(self).rotate_z(degree)
+        return self.copy().rotate_z(degree)
 
     def rotated_axis(self, axis, degree):
         """
@@ -219,10 +219,10 @@ class vec3(vec_base):
         :param axis: float sequence of length 3
         :param degree: the degrees [0., 360.]
         :return: vec3
-        >>> vec3((1,2,3)).rotated_axis((1,0,0), 90) == vec3((1,2,3)).rotated_x(90)
+        >>> vec3(1,2,3).rotated_axis((1,0,0), 90) == vec3(1,2,3).rotated_x(90)
         True
         """
-        return vec3(self).rotate_axis(axis, degree)
+        return self.copy().rotate_axis(axis, degree)
 
 
 if __name__ == "__main__":

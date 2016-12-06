@@ -6,10 +6,7 @@ class mat_base(vec_base):
     Base class for common matrix operations
     """
     def __init__(self, *arg):
-        if arg is None:
-            self.set(1.)
-        else:
-            self.set(*arg)
+        self.set(*arg)
 
     def __unicode__(self):
         r = "%s(" % self.__class__.__name__
@@ -79,15 +76,19 @@ class mat_base(vec_base):
         Returns True if the matrix contains a translation, False otherwise
         :return: bool
         """
-        return len(self) != 16 or (not (self.v[12] == 0. and self.v[13] == 0. and self.v[14] == 0.))
+        return len(self) == 16 and not (self.v[12] == 0. and self.v[13] == 0. and self.v[14] == 0.)
 
     def has_rotation(self):
         """
-        Returns True if the matrix contains a rotation, scale or skew transform, False otherwise
+        Returns True if the matrix contains a rotation or skew transform, False otherwise
         :return: bool
         """
-        # TODO: generalize
-        return not self.get_3x3() == [1., 0., 0., 0., 1., 0., 0., 0., 1.]
+        num = min(3, self.num_rows())
+        for r in range(num):
+            for c in range(num):
+                if not r == c and not self.v[c*self.num_rows()+r] == 0:
+                    return True
+        return False
 
     # ---- public API setter -----
 
@@ -117,21 +118,13 @@ class mat_base(vec_base):
         >>> mat4().set((1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16))
         mat4(1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)
         """
-        if not arg:
-            arg = 1.
-        else:
-            if len(arg) == 1:
-                arg = arg[0]
-
-        if tools.is_number(arg):
-            arg = float(arg)
-            self.set_identity(arg)
+        if arg and len(arg) == 1 and tools.is_number(arg[0]):
+            self.set_identity(float(arg[0]))
             return self
-
-        tools.check_float_sequence(arg, len(self))
-
-        self.v = [float(x) for x in arg]
-        return self
+        if not arg:
+            self.set_identity(1.)
+            return self
+        return super(mat_base, self).set(*arg)
 
     def transpose(self):
         """
@@ -143,14 +136,14 @@ class mat_base(vec_base):
         self.v = [self.v[row + i*self.num_rows()] for row in range(self.num_rows()) for i in range(self.num_rows())]
         return self
 
-    def set_scale(self, arg):
+    def init_scale(self, arg):
         """
         Initializes the matrix with a scale transform, INPLACE
         :param arg: either a float or a float sequence of length 3
         :return: self
-        >>> mat4().set_scale(2)
+        >>> mat4().init_scale(2)
         mat4(2,0,0,0, 0,2,0,0, 0,0,2,0, 0,0,0,1)
-        >>> mat4().set_scale((2,3,4))
+        >>> mat4().init_scale((2,3,4))
         mat4(2,0,0,0, 0,3,0,0, 0,0,4,0, 0,0,0,1)
         """
         if tools.is_number(arg):
@@ -176,7 +169,7 @@ class mat_base(vec_base):
         >>> mat4().scale((2,3,4))
         mat4(2,0,0,0, 0,3,0,0, 0,0,4,0, 0,0,0,1)
         """
-        m = self.__class__().set_scale(arg)
+        m = self.__class__().init_scale(arg)
         self._multiply_inplace(m)
         return self
 
@@ -186,7 +179,7 @@ class mat_base(vec_base):
     def transposed(self):
         """
         Returns a mat4 with columns and rows interchanged
-        :return: mat4
+        :return: new matrix
         >>> mat4((1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16)).transposed()
         mat4(1,5,9,13, 2,6,10,14, 3,7,11,15, 4,8,12,16)
         """
@@ -196,7 +189,7 @@ class mat_base(vec_base):
         """
         Returns a scaled matrix
         :param arg3: single float or float sequence of length 3
-        :return: mat4
+        :return: new matrix
         >>> mat4().scaled(2)
         mat4(2,0,0,0, 0,2,0,0, 0,0,2,0, 0,0,0,1)
         >>> mat4().scaled((2,3,4))

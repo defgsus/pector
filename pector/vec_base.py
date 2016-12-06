@@ -162,28 +162,31 @@ class vec_base:
         :param arg: float number(s) or sequence
         :return: self
         """
-        if len(arg) == 1:
-            arg = arg[0]
-
-            if tools.is_number(arg):
-                arg = float(arg)
-                self.v = [arg, arg, arg]
-                return self
-
-        self._set_from_seq(arg)
-
-    def _set_from_seq(self, arg):
-        tools.check_float_sequence(arg)
-        if len(arg) > len(self):
-            raise TypeError("Sequence %s with length %d is too long for %s" % (type(arg), len(arg), type(self)))
-
-        if len(arg) == len(self):
-            self.v = [float(x) for x in arg]
+        if len(arg) == 1 and tools.is_number(arg[0]):
+            arg = float(arg[0])
+            self.v = [arg for i in range(len(self))]
             return self
 
-        self.v = [x for x in arg]
-        for i in range(len(self) - len(arg)):
-            self.v.append(0.)
+        self.v = [0. for i in range(len(self))]
+        num_copied = 0
+        i = 0
+        while num_copied < len(self) and i < len(arg):
+            a = arg[i]
+            if tools.is_number(a):
+                self.v[num_copied] = float(a)
+                num_copied += 1
+                i += 1
+            elif tools.is_float_sequence(a):
+                for j in a:
+                    if num_copied >= len(self):
+                        raise ValueError("Too much data to initialize %s" % self.__class__.__name__)
+                    self.v[num_copied] = float(j)
+                    num_copied += 1
+                i += 1
+            else:
+                raise TypeError("Invalid argument %s to %s" % (type(a), self.__class__.__name__))
+        if i < len(arg):
+            raise ValueError("Too much data to initialize %s " % self.__class__.__name__)
 
     def copy(self):
         """
@@ -324,7 +327,7 @@ class vec_base:
     def floored(self):
         """
         Returns a vector with the floor() function applied to all elements
-        :return: self
+        :return: new vector
         >>> vec3((0.1, 1.5, 2.9)).floored()
         vec3(0, 1, 2)
         >>> vec3((-1.1, -1.9, -0.9)).floored()
@@ -334,9 +337,9 @@ class vec_base:
 
     def rounded(self, ndigits=None):
         """
-        Returns a vector with floor(+.5) applied to all elements
+        Returns a vector with round() applied to all elements
         :param ndigits: None, or the number of digits
-        :return: self
+        :return: new vector
         >>> vec3((0.1, 1.5, 2.9)).rounded()
         vec3(0, 2, 3)
         >>> vec3((-1.1, -1.9, -0.9)).rounded()
@@ -349,7 +352,7 @@ class vec_base:
     def normalized(self):
         """
         Returns normalized vector, e.g. makes it length 1.
-        :return: self
+        :return: new vector
         >>> vec3((1,1,0)).normalized()
         vec3(0.707107, 0.707107, 0)
         >>> vec3((1,2,3)).normalized().length() == 1
@@ -361,7 +364,7 @@ class vec_base:
         """
         Returns normalized vector, e.g. makes it length 1.
         Does nothing if length is 0.
-        :return: self
+        :return: new vector
         >>> vec3((1,1,0)).normalized_safe()
         vec3(0.707107, 0.707107, 0)
         >>> vec3(0).normalized_safe()

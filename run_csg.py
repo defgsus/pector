@@ -184,20 +184,31 @@ def csg_5():
     return o;
 
 def csg_6():
+    o1 = Tube(radius=0.5)
+    o1 = Fan(o1, axis=1, angle=(90,30))
+    o1 = Repeat(o1, vec3(10,0,10))
+    o1 = Fan(o1, axis=1, angle=(0, 45))
+
+    o2 = Tube(radius=0.2)
+    o2 = Fan(o2, axis=1, angle=(90,10))
+    o2 = Repeat(o2, vec3(12,0,12))
+    o2 = Fan(o2, axis=1, angle=(0, 60))
+
     o = Difference([
         Plane(normal=(0,1,0)),
-        Repeat(repeat=(2,0,2),
-               object=Sphere(radius=.5))
+        o1, o2
+        #Repeat(repeat=(2,0,2),
+        #       object=Sphere(radius=.5))
     ])
     #o = Union([o.copy(), Sphere(transform=mat4().translate((0,2,0)))])
     #o = Union([o.copy(), Tube(axis=2)])
-    o = Fan(o.set_transform(mat4().translate((0,-12, 0))), axis=2, angle=(180, 40) )
-    o = Repeat(o, repeat=vec3(24, 0, 0))
-    o = Fan(o.set_transform(mat4().translate((13,0, 0))), axis=1, angle=(90, 80) )
-    return o
+    #o = Fan(o.set_transform(mat4().translate((0,-12, 0))), axis=2, angle=(180, 40) )
+    #o = Repeat(o, repeat=vec3(24, 0, 0))
+    #o = Fan(o.set_transform(mat4().translate((13,0, 0))), axis=1, angle=(90, 80) )
+    return o.set_transform(mat4().translate((0,-4,0)))
 
 
-c = csg_5()
+c = csg_6()
 #print( csg.glsl.render_glsl(c) )
 #render(c)
 csg_shader_window.render_csg(c)

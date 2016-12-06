@@ -8,7 +8,7 @@ class mat4(mat_base):
     """
 
     def __len__(self):
-        return 16;
+        return 16
 
     def num_rows(self):
         return 4
@@ -40,12 +40,6 @@ class mat4(mat_base):
         """
         return not (self.v[12] == 0. and self.v[13] == 0. and self.v[14] == 0.)
 
-    def has_rotation(self):
-        """
-        Returns True if the matrix contains a rotation, scale or skew transform, False otherwise
-        :return: bool
-        """
-        return not self.get_3x3() == [1., 0., 0., 0., 1., 0., 0., 0., 1.]
 
     # ---- public API setter -----
 
@@ -86,12 +80,12 @@ class mat4(mat_base):
         self.v[14] = float(arg3[2])
         return self
 
-    def set_rotate_x(self, degree):
+    def init_rotate_x(self, degree):
         """
         Initializes the matrix with a rotation transform, INPLACE
         :param degree: degrees of rotation
         :return: self
-        >>> mat4().set_rotate_x(90).round()
+        >>> mat4().init_rotate_x(90).round()
         mat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1)
         """
         degree *= const.DEG_TO_TWO_PI
@@ -104,12 +98,12 @@ class mat4(mat_base):
         self.v[10] = ca
         return self
 
-    def set_rotate_y(self, degree):
+    def init_rotate_y(self, degree):
         """
         Initializes the matrix with a rotation transform, INPLACE
         :param degree: degrees of rotation
         :return: self
-        >>> mat4().set_rotate_y(90).round()
+        >>> mat4().init_rotate_y(90).round()
         mat4(0,0,-1,0, 0,1,0,0, 1,0,0,0, 0,0,0,1)
         """
         degree *= const.DEG_TO_TWO_PI
@@ -122,12 +116,12 @@ class mat4(mat_base):
         self.v[10] = ca
         return self
 
-    def set_rotate_z(self, degree):
+    def init_rotate_z(self, degree):
         """
         Initializes the matrix with a rotation transform, INPLACE
         :param degree: degrees of rotation
         :return: self
-        >>> mat4().set_rotate_z(90).round()
+        >>> mat4().init_rotate_z(90).round()
         mat4(0,1,0,0, -1,0,0,0, 0,0,1,0, 0,0,0,1)
         """
         degree *= const.DEG_TO_TWO_PI
@@ -140,13 +134,13 @@ class mat4(mat_base):
         self.v[5] = ca
         return self
 
-    def set_rotate_axis(self, axis, degree):
+    def init_rotate_axis(self, axis, degree):
         """
         Initializes the matrix with a rotation transform, INPLACE
         :param axis: float sequence of length 3, must be normalized!
         :param degree: degrees of rotation
         :return: self
-        >>> mat4().set_rotate_axis((1,0,0), 90).round()
+        >>> mat4().init_rotate_axis((1,0,0), 90).round()
         mat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1)
         """
         tools.check_float_sequence(axis, 3)
@@ -197,7 +191,7 @@ class mat4(mat_base):
         >>> mat4().rotate_x(90).round()
         mat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1)
         """
-        m = mat4().set_rotate_x(degree)
+        m = mat4().init_rotate_x(degree)
         self._multiply_inplace(m)
         return self
 
@@ -209,7 +203,7 @@ class mat4(mat_base):
         >>> mat4().rotate_y(90).round()
         mat4(0,0,-1,0, 0,1,0,0, 1,0,0,0, 0,0,0,1)
         """
-        m = mat4().set_rotate_y(degree)
+        m = mat4().init_rotate_y(degree)
         self._multiply_inplace(m)
         return self
 
@@ -221,7 +215,7 @@ class mat4(mat_base):
         >>> mat4().rotate_z(90).round()
         mat4(0,1,0,0, -1,0,0,0, 0,0,1,0, 0,0,0,1)
         """
-        m = mat4().set_rotate_z(degree)
+        m = mat4().init_rotate_z(degree)
         self._multiply_inplace(m)
         return self
 
@@ -234,7 +228,7 @@ class mat4(mat_base):
         >>> mat4().rotate_axis((1,0,0), 90).round()
         mat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1)
         """
-        m = mat4().set_rotate_axis(axis, degree)
+        m = mat4().init_rotate_axis(axis, degree)
         self._multiply_inplace(m)
         return self
 
@@ -281,7 +275,7 @@ class mat4(mat_base):
         Returns a copy of the matrix with translation set to zero
         :return: mat4
         """
-        return self.copy().set_position((0,0,0))
+        return self.copy().set_position((0, 0, 0))
 
     def translated(self, arg3):
         """
