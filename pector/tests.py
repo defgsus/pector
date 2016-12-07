@@ -1,5 +1,6 @@
+import math
 from unittest import TestCase
-from pector import vec2, vec3, mat3, mat4
+from pector import vec2, vec3, mat3, mat4, quat
 
 
 class TestVec2(TestCase):
@@ -618,20 +619,20 @@ class TestMat4(TestCase):
         self.assertEqual(a, mat4(.5))
 
     def test_copy_vs_inplace(self):
-        m = mat4();
-        m += 1;
+        m = mat4()
+        m += 1
         self.assertEqual( mat4() + 1, m)
-        m = mat4();
-        m -= 1;
+        m = mat4()
+        m -= 1
         self.assertEqual( mat4() - 1, m)
-        m = mat4();
-        m *= 2;
+        m = mat4()
+        m *= 2
         self.assertEqual( mat4() * 2, m)
-        m = mat4();
-        m /= 2;
+        m = mat4()
+        m /= 2
         self.assertEqual( mat4() / 2, m)
-        m = mat4(1.5);
-        m %= 1;
+        m = mat4(1.5)
+        m %= 1
         self.assertEqual( mat4(1.5) % 1, m)
 
     def test_dot(self):
@@ -696,3 +697,110 @@ class TestMat4(TestCase):
         self.assertEqual( mat4().translate((1,2,3)).rotate_x(90).position(), (1,2,3))
         a = mat4().rotate_x(90).translate((1,2,3))
         self.assertEqual(a.position(), a * (0,0,0))
+
+
+
+
+
+
+
+class TestQuat(TestCase):
+    def setUp(self):
+        pass
+
+    def test_assignment(self):
+        self.assertEqual("quat(1, 0, 0, 0)", str(quat()), )
+        self.assertEqual("quat(1, 2, 3, 4)", str(quat(1,2,3,4)) )
+        with self.assertRaises(TypeError):
+            quat(1,2,3)
+        with self.assertRaises(TypeError):
+            quat((1,2,3))
+        with self.assertRaises(TypeError):
+            quat((1,2,3),4,5)
+        with self.assertRaises(TypeError):
+            quat("bla")
+        with self.assertRaises(TypeError):
+            quat({"x":23})
+
+    def test_equal(self):
+        self.assertTrue(  quat() == (1,0,0,0) )
+        self.assertFalse( quat() == (0,0,0) )
+        self.assertFalse( quat() == (0,0,0,0,0) )
+        self.assertTrue(  quat(1,2,3,4) == (1,2,3,4) )
+
+    def test_properties(self):
+        self.assertEqual(quat(1,2,3,4).x, 1)
+        self.assertEqual(quat(1,2,3,4).y, 2)
+        self.assertEqual(quat(1,2,3,4).z, 3)
+        self.assertEqual(quat(1,2,3,4).w, 4)
+        a = quat()
+        a.x = 5
+        self.assertEqual((5,0,0,0), a)
+        a.y = 6
+        self.assertEqual((5,6,0,0), a)
+        a.z = 7
+        self.assertEqual((5,6,7,0), a)
+        a.w = 8
+        self.assertEqual((5,6,7,8), a)
+
+    def test_getitem(self):
+        a = quat(1,2,3,4)
+        self.assertEqual(1, a[0])
+        self.assertEqual(2, a[1])
+        self.assertEqual(3, a[2])
+        self.assertEqual(4, a[3])
+        with self.assertRaises(IndexError):
+            b = a[4]
+
+    def test_setitem(self):
+        a = quat()
+        a[0] = 1
+        self.assertEqual(quat(1,0,0,0), a)
+        a[1] = 2
+        self.assertEqual(quat(1,2,0,0), a)
+        a[2] = 3
+        self.assertEqual(quat(1,2,3,0), a)
+        a[3] = 4
+        self.assertEqual(quat(1,2,3,4), a)
+        with self.assertRaises(IndexError):
+            a[4] = 1
+
+    def test_iter(self):
+        self.assertEqual([1,2,3,4], [x for x in quat(1,2,3,4)])
+
+    def test_abs(self):
+        self.assertEqual(quat(1,2,3,4), abs(quat(-1,-2,-3,-4)))
+        self.assertEqual(quat(1,2,3,4), abs(quat( 1,-2, 3,-4)))
+
+    def test_floor(self):
+        self.assertEqual(quat(1,2,3,4), quat(1.4,2.5,3.6,4.7).floor())
+        self.assertEqual(quat(-2,-3,-4,-5), quat(-1.4,-2.5,-3.6,-4.7).floor())
+        self.assertEqual(quat(1,2,3,4), quat(1.4,2.5,3.6,4.7).floored())
+        self.assertEqual(quat(-2,-3,-4,-5), quat(-1.4,-2.5,-3.6,-4.7).floored())
+
+    def test_round(self):
+        self.assertEqual((0, 0, 1, 0), quat(0.49, 0.5, 0.51, 0).round())
+        self.assertEqual((0, 0, -1, 0), quat(-0.49, -0.5, -0.51, 0).round())
+        self.assertEqual((0.5, 0.5, 0.5, 0), quat(0.49, 0.5, 0.51, 0).round(1))
+        self.assertEqual((-0.5, -0.5, -0.5, 0), quat(-0.49, -0.5, -0.51, 0).round(1))
+        self.assertEqual((0.12346, 0.12346, 0.12341, 0), quat(0.123456, 0.123456789, 0.1234123456789, 0).round(5))
+        self.assertEqual((0, 0, 1, 0), quat(0.49, 0.5, 0.51, 0).rounded())
+        self.assertEqual((0, 0, -1, 0), quat(-0.49, -0.5, -0.51, 0).rounded())
+
+    def test_length(self):
+        self.assertAlmostEquals(1., quat(1,0,0,0).length())
+        self.assertAlmostEquals(math.sqrt(2.), quat(1,1,0,0).length())
+        self.assertAlmostEquals(1., quat(1,2,3,4).normalized().length())
+
+    def test_dot(self):
+        self.assertEqual(60, quat(1,2,3,4).dot((4,5,6,7)))
+        with self.assertRaises(TypeError):
+            quat().dot((1,2))
+
+    def test_rotate(self):
+        self.assertEqual(quat().init_rotate_axis((1,2,3), 4), quat((1,2,3),4))
+        self.assertEqual(mat3().init_rotate_axis((1,0,0), 0).round(),
+                         quat().init_rotate_axis((1,0,0), 0).as_mat3().round())
+        self.assertEqual(mat3().init_rotate_axis((1,0,0), 90).round(),
+                         quat().init_rotate_axis((1,0,0), 90).as_mat3().round())
+

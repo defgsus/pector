@@ -1,5 +1,5 @@
 # pector
-simple python vector/matrix lib with focus on 3d geomety
+simple python vector/matrix lib with focus on 3d geometry
 
 Every once and then a programmer should learn a new language and reimplement old stuff using new paradigms.
 If just for the sake of fascination.
