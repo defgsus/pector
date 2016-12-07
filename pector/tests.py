@@ -709,7 +709,7 @@ class TestQuat(TestCase):
         pass
 
     def test_assignment(self):
-        self.assertEqual("quat(1, 0, 0, 0)", str(quat()), )
+        self.assertEqual("quat(0, 0, 0, 1)", str(quat()), )
         self.assertEqual("quat(1, 2, 3, 4)", str(quat(1,2,3,4)) )
         with self.assertRaises(TypeError):
             quat(1,2,3)
@@ -723,7 +723,7 @@ class TestQuat(TestCase):
             quat({"x":23})
 
     def test_equal(self):
-        self.assertTrue(  quat() == (1,0,0,0) )
+        self.assertTrue(  quat() == (0,0,0,1) )
         self.assertFalse( quat() == (0,0,0) )
         self.assertFalse( quat() == (0,0,0,0,0) )
         self.assertTrue(  quat(1,2,3,4) == (1,2,3,4) )
@@ -735,11 +735,11 @@ class TestQuat(TestCase):
         self.assertEqual(quat(1,2,3,4).w, 4)
         a = quat()
         a.x = 5
-        self.assertEqual((5,0,0,0), a)
+        self.assertEqual((5,0,0,1), a)
         a.y = 6
-        self.assertEqual((5,6,0,0), a)
+        self.assertEqual((5,6,0,1), a)
         a.z = 7
-        self.assertEqual((5,6,7,0), a)
+        self.assertEqual((5,6,7,1), a)
         a.w = 8
         self.assertEqual((5,6,7,8), a)
 
@@ -755,11 +755,11 @@ class TestQuat(TestCase):
     def test_setitem(self):
         a = quat()
         a[0] = 1
-        self.assertEqual(quat(1,0,0,0), a)
+        self.assertEqual(quat(1,0,0,1), a)
         a[1] = 2
-        self.assertEqual(quat(1,2,0,0), a)
+        self.assertEqual(quat(1,2,0,1), a)
         a[2] = 3
-        self.assertEqual(quat(1,2,3,0), a)
+        self.assertEqual(quat(1,2,3,1), a)
         a[3] = 4
         self.assertEqual(quat(1,2,3,4), a)
         with self.assertRaises(IndexError):
@@ -802,5 +802,5 @@ class TestQuat(TestCase):
         self.assertEqual(mat3().init_rotate_axis((1,0,0), 0).round(),
                          quat().init_rotate_axis((1,0,0), 0).as_mat3().round())
         self.assertEqual(mat3().init_rotate_axis((1,0,0), 90).round(),
-                         quat().init_rotate_axis((1,0,0), 90).as_mat3().round())
+                         quat().init_rotate_axis((1,0,0), -90).as_mat3().round())
 

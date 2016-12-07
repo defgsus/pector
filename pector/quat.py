@@ -14,7 +14,7 @@ class quat(vec_base):
     typically of length 4 as well.
     """
     def __init__(self, *arg):
-        self.v = [1., 0., 0., 0.]
+        self.v = [0., 0., 0., 1.]
         if arg:
             self.set(*arg)
 
@@ -58,24 +58,21 @@ class quat(vec_base):
 
     def set(self, *arg):
         if arg is None:
-            self.v = [1.,0.,0., 0.]
+            self.v = [0., 0., 0., 1.]
             return self
         if len(arg) == 1:
-            if tools.is_number(arg[0]):
-                self.init_rotate_axis((1,0,0), float(arg[0]))
-                return self
             if tools.is_float_sequence(arg[0]):
                 tools.check_float_sequence(arg[0], 4)
                 self.v = [float(x) for x in arg[0]]
                 return self
-        if len(arg) == 2:
+        elif len(arg) == 2:
             if tools.is_float_sequence(arg[0]) and len(arg[0]) == 3 and tools.is_number(arg[1]):
                 self.init_rotate_axis(arg[0], float(arg[1]))
                 return self
             if tools.is_float_sequence(arg[1]) and len(arg[1]) == 3 and tools.is_number(arg[0]):
                 self.init_rotate_axis(arg[1], float(arg[0]))
                 return self
-        if len(arg) == 4:
+        elif len(arg) == 4:
             tools.check_float_sequence(arg, 4)
             self.v = [float(x) for x in arg]
             return self
@@ -88,9 +85,9 @@ class quat(vec_base):
         y2 = self.y ** 2
         z2 = self.z ** 2
         w2 = self.w ** 2
-        return mat3( w2 + x2 - y2 - z2,  2.*self.x*self.y + 2.*self.w*self.z,  2.*self.x*self.z - 2.*self.w*self.y,
+        return mat3( w2+x2-y2-z2,  2.*self.x*self.y + 2.*self.w*self.z,  2.*self.x*self.z - 2.*self.w*self.y,
                      2.*self.x*self.y - 2.*self.w*self.z, w2-x2+y2-z2, 2.*self.y*self.z - 2.*self.w*self.x,
-                     2.*self.x*self.z + 2.*self.w*self.y, 2.*self.y*self.z + 2.*self.w*self.x, w2-y2-y2+z2
+                     2.*self.x*self.z + 2.*self.w*self.y, 2.*self.y*self.z + 2.*self.w*self.x, w2-x2-y2+z2
         )
 
     # ------- arithmetic ops --------
@@ -128,7 +125,7 @@ class quat(vec_base):
         :return: self
         """
         tools.check_float_sequence(axis, 3)
-        degree = float(degree) * const.DEG_TO_TWO_PI
+        degree = float(degree) * const.DEG_TO_PI
         s = math.sin(degree)
         self.x = float(axis[0]) * s
         self.y = float(axis[1]) * s
