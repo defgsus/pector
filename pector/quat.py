@@ -1,9 +1,10 @@
 import math
-from pector import vec_base, tools, const, mat3
+from pector import vec_base, tools, const
 
 # some refs:
+# http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/arithmetic/index.htm
+# https://en.wikipedia.org/wiki/Rotation_matrix#Quaternion
 # http://www.cprogramming.com/tutorial/3d/quaternions.html
-
 
 class quat(vec_base):
     """
@@ -81,14 +82,27 @@ class quat(vec_base):
     # ------- getter --------
 
     def as_mat3(self):
-        x2 = self.x ** 2
-        y2 = self.y ** 2
-        z2 = self.z ** 2
-        w2 = self.w ** 2
-        return mat3( w2+x2-y2-z2,  2.*self.x*self.y + 2.*self.w*self.z,  2.*self.x*self.z - 2.*self.w*self.y,
-                     2.*self.x*self.y - 2.*self.w*self.z, w2-x2+y2-z2, 2.*self.y*self.z - 2.*self.w*self.x,
-                     2.*self.x*self.z + 2.*self.w*self.y, 2.*self.y*self.z + 2.*self.w*self.x, w2-x2-y2+z2
+        from pector import mat3
+        """
+        Returns a 3x3 rotation matrix from the quaternion.
+        :return: mat3
+        """
+        x2 = 2.* self.x ** 2
+        y2 = 2.* self.y ** 2
+        z2 = 2.* self.z ** 2
+        return mat3(
+            1 - y2 - z2, 	                    2*self.x*self.y - 2*self.z*self.w, 	2*self.x*self.z + 2*self.y*self.w,
+            2*self.x*self.y + 2*self.z*self.w, 	1 - x2 - z2, 	                    2*self.y*self.z - 2*self.x*self.w,
+            2*self.x*self.z - 2*self.y*self.w, 	2*self.y*self.z + 2*self.x*self.w, 	1 - x2 - y2
         )
+        # x2 = self.x ** 2
+        # y2 = self.y ** 2
+        # z2 = self.z ** 2
+        # w2 = self.w ** 2
+        # return mat3( w2+x2-y2-z2,  2.*self.x*self.y + 2.*self.w*self.z,  2.*self.x*self.z - 2.*self.w*self.y,
+        #              2.*self.x*self.y - 2.*self.w*self.z, w2-x2+y2-z2, 2.*self.y*self.z - 2.*self.w*self.x,
+        #              2.*self.x*self.z + 2.*self.w*self.y, 2.*self.y*self.z + 2.*self.w*self.x, w2-x2-y2+z2
+        # )
 
     # ------- arithmetic ops --------
 
@@ -97,10 +111,14 @@ class quat(vec_base):
             return self._binary_operator(float(other), lambda l, r: l * r)
         tools.check_float_sequence(other)
         q = quat()
-        q.x = self.w * other[0] - self.x * other[3] - self.y * other[2] - self.z * other[1]
-        q.y = self.w * other[1] + self.x * other[2] + self.y * other[3] - self.z * other[0]
-        q.z = self.w * other[2] - self.x * other[1] + self.y * other[0] + self.z * other[3]
-        q.w = self.w * other[3] + self.x * other[0] - self.y * other[1] + self.z * other[2]
+        # q.x = self.w * other[0] - self.x * other[3] - self.y * other[2] - self.z * other[1]
+        # q.y = self.w * other[1] + self.x * other[2] + self.y * other[3] - self.z * other[0]
+        # q.z = self.w * other[2] - self.x * other[1] + self.y * other[0] + self.z * other[3]
+        # q.w = self.w * other[3] + self.x * other[0] - self.y * other[1] + self.z * other[2]
+        q.w = self.w * float(other[3]) - self.x * float(other[0]) - self.y * float(other[1]) - self.z * float(other[2])
+        q.x = self.x * float(other[3]) + self.w * float(other[0]) + self.y * float(other[2]) - self.z * float(other[1])
+        q.y = self.w * float(other[1]) - self.x * float(other[2]) + self.y * float(other[3]) + self.z * float(other[0])
+        q.z = self.w * float(other[2]) + self.x * float(other[1]) - self.y * float(other[0]) + self.z * float(other[3])
         return q
 
     def __rmul__(self, other):

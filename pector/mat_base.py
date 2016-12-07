@@ -97,6 +97,13 @@ class mat_base(vec_base):
 
     # ----- public API getter ------
 
+    def trace(self):
+        """
+        Returns the sum of the diagonal
+        :return: float
+        """
+        return sum(self.v[::self.num_rows()+1])
+
     def has_translation(self):
         """
         Returns True if the matrix contains a translation, False otherwise

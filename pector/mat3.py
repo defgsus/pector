@@ -13,8 +13,41 @@ class mat3(mat_base):
     def num_rows(self):
         return 3
 
+    @property
+    def xx(self): return self.v[0]
+    @property
+    def xy(self): return self.v[1]
+    @property
+    def xz(self): return self.v[2]
+    @property
+    def yx(self): return self.v[3]
+    @property
+    def yy(self): return self.v[4]
+    @property
+    def yz(self): return self.v[5]
+    @property
+    def zx(self): return self.v[6]
+    @property
+    def zy(self): return self.v[7]
+    @property
+    def zz(self): return self.v[8]
+
     # ----- public API getter ------
 
+    def as_quat(self):
+        """
+        Returns the rotation matrix as quaternion.
+        :return: quat
+        """
+        r = math.sqrt(1. + self.trace())
+        s = 0.5 / r
+        from pector import quat
+        return quat(
+            (self.zy - self.yz) * s,
+            (self.xz - self.zx) * s,
+            (self.yx - self.xy) * s,
+            0.5 * r
+        )
 
     # ---- public API setter -----
 
