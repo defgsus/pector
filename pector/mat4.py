@@ -215,6 +215,12 @@ class mat4(mat_base):
         self._multiply_inplace(m)
         return self
 
+    def reflect(self, normal):
+        self.v[0:3] = vec3(self.v[0:3]).reflect(normal)
+        self.v[4:7] = vec3(self.v[4:7]).reflect(normal)
+        self.v[8:11] = vec3(self.v[8:11]).reflect(normal)
+        return self
+
     # ------ value-copying methods -------
 
     def transposed(self):

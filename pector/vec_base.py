@@ -347,7 +347,7 @@ class vec_base:
         >>> vec3((-1.1, -1.9, -0.9)).floored()
         vec3(-2, -2, -1)
         """
-        return vec3(self.v).floor()
+        return self.copy().floor()
 
     def rounded(self, ndigits=None):
         """
@@ -361,7 +361,7 @@ class vec_base:
         >>> vec3((0.123, 0.4999, 0.5102)).rounded(2)
         vec3(0.12, 0.5, 0.51)
         """
-        return vec3(self.v).round(ndigits)
+        return self.copy().round(ndigits)
 
     def normalized(self):
         """
@@ -372,7 +372,7 @@ class vec_base:
         >>> vec3((1,2,3)).normalized().length() == 1
         True
         """
-        return vec3(self.v).normalize()
+        return self.copy().normalize()
 
     def normalized_safe(self):
         """
@@ -384,5 +384,5 @@ class vec_base:
         >>> vec3(0).normalized_safe()
         vec3(0, 0, 0)
         """
-        return vec3(self.v).normalize_safe()
+        return self.copy().normalize_safe()
 

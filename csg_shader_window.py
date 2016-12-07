@@ -115,10 +115,141 @@ void main()
 }
 """
 
+CITY_MAP = """
+#include <dh/hash>
+#include <noise>
+#include <fnoise>
+#include <iq/vnoise>
+#include <iq/distfunc>
+#include <intersect>
+#include <rotate>
+
+float smin( float a, float b, float k = 32.)
+{
+    float res = exp( -k*a ) + exp( -k*b );
+    return -log( res )/k;
+}
+
+vec3 smin(in vec3 a, in vec3 b, float k = 32.)
+{
+	return vec3(smin(a.x, b.x, k), smin(a.y,b.y,k), smin(a.z,b.z,k));
+}
+
+
+
+vec3 citymap(in vec3 p)
+{
+	float mag, ac = 0.;
+	for (int i = 0; i < 42; ++i)
+	{
+		mag = dot(p, p);
+		p = abs(p) / mag - vec3(.5, .2, 1.578);
+		ac += mag;
+	}
+	ac = max(ac / 200., smoothstep(1,0,ac/50.));
+	return vec3(ac) * (0.8+0.2*clamp(p, 0., 1.));
+}
+
+const float GRID = 10.;
+const float MAX_SIZE = GRID * 0.9;
+
+float de_building(in vec3 p, in vec3 seed)
+{
+	vec3 si = hash3(seed);
+	si.y = pow(si.y, 4.);
+	si = 0.1 + 0.9 * si;
+	si *= MAX_SIZE / 2.;
+	si.y *= 4.;
+
+	//float rot = floor( hash1(seed*1.1+2.3) * 3.) / 2.;
+	//p.xz = rotate(p.xz, 90. * rot);
+
+	// outer wall
+	float d = sdBox(p, si);
+	// inner wall
+	d = max(d, -sdBox(p, si*0.9));
+	// windows
+	si *= 0.1 + .7*hash3(seed*1.2+3.1);
+	si.y = 0.1 + mod(si.y, 1.);
+	p = mod(p, si) - si / 2.;
+	d = max(d, -sdBox(p, si*.4));
+	return d;
+}
+
+float de_rnd_building(in vec3 p)
+{
+	vec3 pos = p;
+	pos.xz = mod(pos.xz, GRID) - GRID / 2.;
+	return de_building(pos, floor(p/GRID).xzz);
+}
+
+float de_indust(in vec3 p)
+{
+	float d = GRID-MAX_SIZE;
+	for (int i=0; i<5; ++i)
+	{
+		d = min(d, de_rnd_building(p));
+		p.xz += GRID * (1. + hash2(100.-i));
+	}
+
+	return d;
+}
+
+float DE(in vec3 p)
+{
+	float d = dot(p, vec3(0,1,0));
+	d = min(d, de_indust(p));
+	return d;
+}
+
+const float DE_FUDGE = 0.5;
+
+float DE_trace(in vec3 ro, in vec3 rd, in float len = 10., int steps = 100)
+{
+	float t = 0.;
+	for (int i=0; i<steps && t < len; ++i)
+	{
+		vec3 p = ro + t * rd;
+		float d = DE(p);
+
+		t += d * DE_FUDGE;
+	}
+	return t;
+}
+
+float DE_ambient(in vec3 ro, in vec3 rd, int steps = 20)
+{
+	float t = 0.0003, ma = 0.;
+	for (int i=0; i<steps; ++i)
+	{
+		float d = DE(ro + t * rd);
+		ma = max(ma, d);
+		if (d < 0.0001) break;
+		t += d * DE_FUDGE;
+	}
+	return min(1., ma/4.);
+}
+
+float DE_shadow(in vec3 ro, in vec3 rd, float maxt, int k = 8., int steps = 20)
+{
+    float t = 0.001, res = 1.0;
+    for (int i=0; i<steps && t < maxt; ++i)
+    {
+        float h = DE(ro + rd * t);
+        if( h<0.001 )
+            return 0.0;
+        res = min( res, k*h/t );
+        t += h * DE_FUDGE;
+    }
+    return res;
+}
+"""
+
 class Spaceship:
-    def __init__(self):
+    def __init__(self, dist_field):
         self.delta = 0.01
         self.reset()
+        self.dist_field = dist_field
 
     def reset(self):
         self.transform = mat4()
@@ -131,8 +262,18 @@ class Spaceship:
         self.transform.rotate_y(self.rotate.y * 20. * self.delta)
         self.transform.rotate_x(self.rotate.x * 20. * self.delta)
 
+        self.collide()
+
         self.velocity -= self.delta * self.velocity
         self.rotate -= self.delta * self.rotate
+
+    def collide(self):
+        p = self.transform.copy().translate(self.velocity * self.delta).position()
+        d = self.dist_field.get_distance(p)
+        if d < 0.0:
+            n = self.dist_field.get_normal(p)
+            self.transform.reflect(n).rotate_z(180)
+
 
     def check_keys(self, keys):
         amt = self.delta * 4
@@ -170,7 +311,7 @@ class RenderWindow(pyglet.window.Window):
         self.is_hit = False
         self.hit_pos = vec3()
         self.transform = mat4().translate(vec3(0,0,5)+0.001)
-        self.spaceship = Spaceship()
+        self.spaceship = Spaceship(self.dist_field)
         self.spaceship.transform = self.transform
         self.spaceship.delta = 1.
         self.keys = pyglet.window.key.KeyStateHandler()
@@ -181,6 +322,7 @@ class RenderWindow(pyglet.window.Window):
 
     def compile(self):
         try:
+            #frag = frag_src % {"DE": CITY_MAP}
             frag = frag_src % {"DE": render_glsl(self.dist_field)}
             print(frag)
             self.shader = pyshaders.from_string(

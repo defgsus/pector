@@ -70,7 +70,7 @@ class vec3(vec_base):
         :param norm: float sequence of length 3
         :return: self
         Example: suppose ray coming from top-left, going down on a flat plane
-        >>> vec3((2,-1,0)).reflect((0,1,0)).round()
+        >>> vec3(2,-1,0).reflect((0,1,0)).round()
         vec3(2, 1, 0)
         """
         tools.check_float_sequence(norm, 3)

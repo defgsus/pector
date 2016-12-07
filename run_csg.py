@@ -177,7 +177,7 @@ def csg_5():
     o = Fan(o, axis=2, angle=(0,60))
     o = Repeat(o, repeat=(5,5,0))
     o = Fan(o, axis=2, angle=(0, 90))
-    o = Fan(o.set_transform(mat4().translate((0,0,6))), axis=1, angle=(0,60))
+    o = Fan(o.set_transform(mat4().translate((0,0,3))), axis=1, angle=(0,60))
     o = Fan(o, axis=2, angle=(0, 60))
     o = Repeat(o, repeat=vec3(36,36,0))
 
@@ -208,7 +208,7 @@ def csg_6():
     return o.set_transform(mat4().translate((0,-4,0)))
 
 
-c = csg_6()
+c = csg_5()
 #print( csg.glsl.render_glsl(c) )
 #render(c)
 csg_shader_window.render_csg(c)
