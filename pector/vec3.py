@@ -43,17 +43,17 @@ class vec3(vec_base):
 
     # ------- getter -------
 
-    def get_rotation_to(self, axis, fallback=None):
+    def get_rotation_to(self, new_dir, fallback=None):
         """
-        Returns a quaternion with the rotation needed to
-        rotate this vector to align with axis.
-        :param axis: float sequence of length 3, must be normalised
+        Returns a quaternion with the rotation
+        needed to align this vector with new_dir.
+        :param new_dir: float sequence of length 3, must be normalized
         :return: quat
         """
         from .quat import quat
         v0 = self.normalized_safe()
-        d = v0.dot(axis)
-        if d >= 1.:
+        d = v0.dot(new_dir)
+        if d >= .999999:
             return quat()
         elif d < -0.999999:
             if fallback:
@@ -67,7 +67,7 @@ class vec3(vec_base):
         else:
             s = math.sqrt((1.+d) * 2.)
             invs = 1. / s
-            c = v0.cross(axis)
+            c = v0.cross(new_dir)
             return quat(c.x * invs, c.y * invs, c.z * invs, s * .5).normalized()
 
 

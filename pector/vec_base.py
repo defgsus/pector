@@ -336,6 +336,18 @@ class vec_base:
             self.v = [x / l for x in self.v]
         return self
 
+    def lerp(self, other, t):
+        """
+        Linear interpolation to other
+        :param other: sequence of floats
+        :param t: float, 0. - 1.
+        :return: self
+        """
+        tools.check_float_sequence(other, len(self))
+        for i in range(len(self)):
+            self.v[i] += t * (other[i] - self.v[i])
+        return self
+
     # --- value-copying methods ---
 
     def floored(self):

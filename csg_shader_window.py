@@ -19,13 +19,15 @@ in vec4 v_pos;
 uniform vec2 u_resolution;
 uniform vec2 u_mouse_uv;
 uniform vec3 u_hit_pos;
-uniform vec3 u_light_pos;
 uniform mat4 u_transform;
-uniform mat4 u_light_trans;
+uniform mat4 u_ship1;
+uniform mat4 u_ship1_i;
 
-//float DE(in vec3 p) { return length(p)-1.; }
 %(DE)s
-#line 28
+#line 27
+
+vec3 ship1_pos = (u_ship1 * vec4(0,-.5,-2,1)).xyz;
+
 float sdBox( vec3 p, vec3 b )
 {
   vec3 d = abs(p) - b;
@@ -34,7 +36,7 @@ float sdBox( vec3 p, vec3 b )
 
 float DE_ship(in vec3 p)
 {
-    p = (u_light_trans * vec4(p, 1.)).xyz;
+    p = (u_ship1_i * vec4(p, 1.)).xyz;
     //p += vec3(0,0,-5);
     float d = sdBox(p, vec3(0.5, 0.2, 1.));
     d = min(d, sdBox(p, vec3(2., 0.2, 0.2)));
@@ -62,7 +64,7 @@ float sphere_trace(in vec3 ro, in vec3 rd)
         float d = DE1(ro + rd * t);
         if (d < 0.001)
             return t;
-        light_acc += dot(rd, normalize(ro+rd*t - u_light_pos));
+        light_acc += dot(rd, normalize(ro+rd*t - ship1_pos));
         t += d;
     }
     return -1.;
@@ -70,8 +72,11 @@ float sphere_trace(in vec3 ro, in vec3 rd)
 
 vec3 sky_c(in vec3 rd)
 {
-    return mix(vec3(0.5,.3,.1)*.2,
-               vec3(0.2,.5,.8)*.3, rd.y*.5+.5);
+    vec3 col = mix(vec3(0.5,.3,.1)*.2,
+                   vec3(0.2,.5,.8)*.3, rd.y*.5+.5);
+    col *= .5;
+    col *= sin(rd*3.)*.1+.9;
+    return col;
 }
 
 vec3 light(in vec3 p, in vec3 n, in vec3 refl, in vec3 lp, in vec3 co)
@@ -79,8 +84,10 @@ vec3 light(in vec3 p, in vec3 n, in vec3 refl, in vec3 lp, in vec3 co)
     vec3 ln = normalize(lp - p);
     float ph = max(0., dot(n, ln));
     float sh = max(0., dot(refl, ln));
-    return co * pow(ph, 2.)
-         + co * pow(sh, 9.) * .5;
+    vec3 col = co * pow(ph, 2.)
+             + co * pow(sh, 9.) * .5;
+    col /= (1. + length(lp-p));
+    return col;
 }
 
 void get_ray(in vec2 uv, out vec3 ro, out vec3 rd)
@@ -100,24 +107,28 @@ vec3 render(in vec2 uv)
     float t = sphere_trace(ro, rd);
 
     if (t < 0.)
-        return sky_c(rd);
+        col = sky_c(rd);
+    else
+    {
+        vec3 po = ro+t*rd;
+        vec3 n = DE_norm(po);
+        vec3 refl = reflect(rd, n);
 
-    vec3 po = ro+t*rd;
-    vec3 n = DE_norm(po);
-    vec3 refl = reflect(rd, n);
+        col += sky_c(refl)*.2;
+        col += 0.1 * (sky_c(rd)*.2+.4) * pow(max(0., dot(rd, refl)), 7.);
+        col += light(po, n, refl, vec3(10,10,-3), vec3(.6,.7,1.));
+        col += light(po, n, refl, ship1_pos, vec3(1,.9,.5));
 
-    col += sky_c(refl)*.3;
-    col += (sky_c(rd)*.2+.4) * pow(max(0., dot(rd, refl)), 7.);
-    col += light(po, n, refl, vec3(10,10,-3), vec3(.6,.7,1.));
-    col += light(po, n, refl, u_light_pos, vec3(1,.7,.5));
+        col += smoothstep(.2,.0, length(po - u_hit_pos)) * vec3(0,1,1);
+        //col += light(po, n, refl, u_hit_pos, vec3(0,1,1)) * .4;
 
-    float l = max(0., dot(rd, normalize(ro-u_light_pos)));
-    col += pow(l,40.);
+        col = mix(col, sky_c(rd), smoothstep(3., 80., t));
+    }
 
-    col += smoothstep(.2,.0, length(po - u_hit_pos)) * vec3(0,1,1);
-    col += light(po, n, refl, u_hit_pos, vec3(0,1,1)) * .4;
+    float l = max(0., dot(rd, normalize(ship1_pos-ro)));
+    col += .1 * vec3(1,.9,.5)*pow(l,3.+length(ship1_pos-ro));
 
-    return mix(col, sky_c(rd), smoothstep(3., 80., t));
+    return col;
 }
 
 void main()
@@ -316,21 +327,16 @@ class Spaceship:
         self.velocity.z -= self.delta * 10.
 
     def follow(self, pos):
-        d = pos - self.transform.position()
+        d = self.transform.inversed_simple() * pos
         di = d.length()
         if di < 0.01:
             return
         d.normalize_safe()
-        fwd = self.transform.position_cleared() * vec3(0,0,-1)
-        q = fwd.get_rotation_to(d)
-        #q = (q+.9*(quat()-q)).normalize()
-        #print(fwd, d, q)
-        m4 = q.as_mat4()
-        #q.inverse()
-        self.transform *= m4
-        self.velocity.z -= 2.*self.delta
-        #d = self.transform.position_cleared().inversed_simple().transposed() * d
-        #self.velocity += self.delta * d  # * max(0,di/10.)
+        q = vec3(0,0,-1).get_rotation_to(d)
+        adjust = max(0.,min(1., (di-2.)/40.)) * 10.
+        q = quat().lerp(q, self.delta*adjust).normalize()
+        self.transform *= q.as_mat4()
+        self.velocity.z -= self.delta * max(1.,-d.z * 10. -self.velocity.z*.5)
 
 
     def collide(self):
@@ -426,10 +432,10 @@ class RenderWindow(pyglet.window.Window):
         if "u_transform" in self.shader.uniforms:
             self.shader.uniforms.u_transform = self.transform.as_list_list(row_major=True)
         if self.spaceship.follower:
-            if "u_light_pos" in self.shader.uniforms:
-                self.shader.uniforms.u_light_pos = tuple(self.spaceship.follower[0].transform.position())
-            if "u_light_trans" in self.shader.uniforms and self.spaceship.follower:
-                self.shader.uniforms.u_light_trans = self.spaceship.follower[0].transform.inversed_simple().as_list_list(row_major=True)
+            if "u_ship1" in self.shader.uniforms and self.spaceship.follower:
+                self.shader.uniforms.u_ship1 = self.spaceship.follower[0].transform.as_list_list(row_major=True)
+            if "u_ship1_i" in self.shader.uniforms and self.spaceship.follower:
+                self.shader.uniforms.u_ship1_i = self.spaceship.follower[0].transform.inversed_simple().as_list_list(row_major=True)
 
         pyglet.graphics.draw(6, pyglet.gl.GL_TRIANGLES,
                              ('v2f', (-1,-1, 1,-1, -1,1

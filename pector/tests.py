@@ -823,6 +823,7 @@ class TestQuat(TestCase):
         for i in range(100):
             q = quat()
             m = mat3()
+            # TODO: more than one transform is way off
             for j in range(1):
                 axis = vec3(self.r.gauss(0,1), self.r.gauss(0,1), self.r.gauss(0,1)).normalize()
                 deg = self.r.uniform(-180/5, 180/5)
