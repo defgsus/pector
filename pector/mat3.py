@@ -34,20 +34,64 @@ class mat3(mat_base):
 
     # ----- public API getter ------
 
+    def as_quat2(self):
+        from pector import quat
+        i = 0
+        if self.get(1,1) > self.get(0, 0):
+            i = 1
+        if self.get(2,2) > self.get(i, i):
+            i = 2
+        j = (i+1) % 3
+        k = (j+1) % 3
+        r = math.sqrt(1. + self.get(i,i) - self.get(j, j) - self.get(k,k))
+        if not r:
+            return quat()
+        #print(self.get(i,i), self.get(j,j), self.get(k,k) )
+        s = .5 / r
+        q = quat()
+        q[i] = .5 * r
+        q[j] = (self.get(j,i) + self.get(i,j)) * s
+        q[k] = (self.get(k,i) + self.get(i,k)) * s
+        q[3] = (self.get(k,j) - self.get(j,k)) * s
+        return q
+
     def as_quat(self):
         """
         Returns the rotation matrix as quaternion.
         :return: quat
         """
-        r = math.sqrt(1. + self.trace())
-        s = 0.5 / r
+        t = self.trace()
         from pector import quat
-        return quat(
-            (self.zy - self.yz) * s,
-            (self.xz - self.zx) * s,
-            (self.yx - self.xy) * s,
-            0.5 * r
-        )
+        if t > 0.:
+            r = math.sqrt(1. + t)
+            s = 0.5 / r
+            return quat(
+                (self.yz - self.zy) * s,
+                (self.zx - self.xz) * s,
+                (self.xy - self.yx) * s,
+                0.5 * r
+            )
+        elif self.xx > self.xy and self.xx > self.zz:
+            r = math.sqrt(1. + self.xx - self.yy - self.zz) * 2.
+            s = 1. / r
+            return quat(.25 * r,
+                        (self.xy + self.yx) * s,
+                        (self.xz + self.zx) * s,
+                        (self.zy - self.yz) * s)
+        elif self.yy > self.zz:
+            r = math.sqrt(1. + self.yy - self.xx - self.zz) * 2.
+            s = 1. / r
+            return quat((self.xy + self.yx) * s,
+                        .25 * r,
+                        (self.yz + self.zy) * s,
+                        (self.xz - self.zx) * s)
+        else:
+            r = math.sqrt(1. + self.zz - self.xx - self.yy) * 2.
+            s = 1. / r
+            return quat((self.xz + self.zx) * s,
+                        (self.yz + self.zy) * s,
+                        .25 * r,
+                        (self.yx - self.xy) * s)
 
     # ---- public API setter -----
 
@@ -59,12 +103,12 @@ class mat3(mat_base):
         self.v = self.inversed_simple().v
         return self
 
-    def init_rotate_x(self, degree):
+    def set_rotate_x(self, degree):
         """
         Initializes the matrix with a rotation transform, INPLACE
         :param degree: degrees of rotation
         :return: self
-        >>> mat3().init_rotate_x(90).round()
+        >>> mat3().set_rotate_x(90).round()
         mat3(1,0,0, 0,0,1, 0,-1,0)
         """
         degree *= const.DEG_TO_TWO_PI
@@ -77,12 +121,12 @@ class mat3(mat_base):
         self.v[8] = ca
         return self
 
-    def init_rotate_y(self, degree):
+    def set_rotate_y(self, degree):
         """
         Initializes the matrix with a rotation transform, INPLACE
         :param degree: degrees of rotation
         :return: self
-        >>> mat3().init_rotate_y(90).round()
+        >>> mat3().set_rotate_y(90).round()
         mat3(0,0,-1, 0,1,0, 1,0,0)
         """
         degree *= const.DEG_TO_TWO_PI
@@ -95,12 +139,12 @@ class mat3(mat_base):
         self.v[8] = ca
         return self
 
-    def init_rotate_z(self, degree):
+    def set_rotate_z(self, degree):
         """
         Initializes the matrix with a rotation transform, INPLACE
         :param degree: degrees of rotation
         :return: self
-        >>> mat3().init_rotate_z(90).round()
+        >>> mat3().set_rotate_z(90).round()
         mat3(0,1,0, -1,0,0, 0,0,1)
         """
         degree *= const.DEG_TO_TWO_PI
@@ -113,13 +157,13 @@ class mat3(mat_base):
         self.v[4] = ca
         return self
 
-    def init_rotate_axis(self, axis, degree):
+    def set_rotate_axis(self, axis, degree):
         """
         Initializes the matrix with a rotation transform, INPLACE
         :param axis: float sequence of length 3, must be normalized!
         :param degree: degrees of rotation
         :return: self
-        >>> mat3().init_rotate_axis((1,0,0), 90).round()
+        >>> mat3().set_rotate_axis((1,0,0), 90).round()
         mat3(1,0,0, 0,0,1, 0,-1,0)
         """
         tools.check_float_sequence(axis, 3)
@@ -158,7 +202,7 @@ class mat3(mat_base):
         >>> mat3().rotate_x(90).round()
         mat3(1,0,0, 0,0,1, 0,-1,0)
         """
-        m = mat3().init_rotate_x(degree)
+        m = mat3().set_rotate_x(degree)
         self._multiply_inplace(m)
         return self
 
@@ -170,7 +214,7 @@ class mat3(mat_base):
         >>> mat3().rotate_y(90).round()
         mat3(0,0,-1, 0,1,0, 1,0,0)
         """
-        m = mat3().init_rotate_y(degree)
+        m = mat3().set_rotate_y(degree)
         self._multiply_inplace(m)
         return self
 
@@ -182,7 +226,7 @@ class mat3(mat_base):
         >>> mat3().rotate_z(90).round()
         mat3(0,1,0, -1,0,0, 0,0,1)
         """
-        m = mat3().init_rotate_z(degree)
+        m = mat3().set_rotate_z(degree)
         self._multiply_inplace(m)
         return self
 
@@ -195,7 +239,7 @@ class mat3(mat_base):
         >>> mat3().rotate_axis((1,0,0), 90).round()
         mat3(1,0,0, 0,0,1, 0,-1,0)
         """
-        m = mat3().init_rotate_axis(axis, degree)
+        m = mat3().set_rotate_axis(axis, degree)
         self._multiply_inplace(m)
         return self
 

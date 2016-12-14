@@ -177,11 +177,30 @@ def csg_5():
     o = Fan(o, axis=2, angle=(0,60))
     o = Repeat(o, repeat=(5,5,0))
     o = Fan(o, axis=2, angle=(0, 90))
+    # 3d
     o = Fan(o.set_transform(mat4().translate((0,0,3))), axis=1, angle=(0,60))
     o = Fan(o, axis=2, angle=(0, 60))
     o = Repeat(o, repeat=vec3(36,36,0))
 
-    return o;
+    #o = Fan(o.set_transform(mat4().translate((0,0,10))), axis=1, angle=(0,60))
+    return o
+
+def csg_5a():
+    o = Tube(radius=0.25, axis=1)
+    o = Fan(o, axis=2)
+    o = Repeat(o, repeat=(2,2,0))
+    #o = Fan(o, axis=2, angle=(0,60))
+    #o = Repeat(o, repeat=(5,5,0))
+    #o = Fan(o, axis=2, angle=(0, 90))
+    # 3d
+    o = Fan(o.set_transform(mat4().translate((0,0,3))), axis=1, angle=(0,60))
+    o = Fan(o, axis=2, angle=(0, 60))
+    o = Repeat(o, repeat=vec3(36,36,0))
+
+    o = Fan(o.set_transform(mat4().translate((0,0,10))), axis=1, angle=(0,120))
+    o = Repeat(o, repeat=(40,0,30))
+    o = Fan(o, axis=2, angle=(0,90))
+    return o
 
 def csg_6():
     o1 = Tube(radius=0.5)
@@ -202,13 +221,20 @@ def csg_6():
     ])
     #o = Union([o.copy(), Sphere(transform=mat4().translate((0,2,0)))])
     #o = Union([o.copy(), Tube(axis=2)])
-    #o = Fan(o.set_transform(mat4().translate((0,-12, 0))), axis=2, angle=(180, 40) )
+    #o = Fan(o.set_transform(mat4().translate((0,-6, 0))), axis=2, angle=(180, 40) )
+    #o = Fan(o, axis=1, angle=(0,90))
     #o = Repeat(o, repeat=vec3(24, 0, 0))
     #o = Fan(o.set_transform(mat4().translate((13,0, 0))), axis=1, angle=(90, 80) )
     return o.set_transform(mat4().translate((0,-4,0)))
 
+def csg_7():
+    o = Tube(axis=1, radius=1.)
+    o = Fan(o, axis=2, angle=(0, 60))
+    o = Repeat(o, repeat=(10,10,20))
+    o = Fan(o, axis=0, angle=(0, 60))
+    return o
 
-c = csg_5()
+c = csg_6()
 #print( csg.glsl.render_glsl(c) )
 #render(c)
 csg_shader_window.render_csg(c)

@@ -63,12 +63,12 @@ class mat4(mat_base):
         self.v[14] = float(arg3[2])
         return self
 
-    def init_rotate_x(self, degree):
+    def set_rotate_x(self, degree):
         """
         Initializes the matrix with a rotation transform, INPLACE
         :param degree: degrees of rotation
         :return: self
-        >>> mat4().init_rotate_x(90).round()
+        >>> mat4().set_rotate_x(90).round()
         mat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1)
         """
         degree *= const.DEG_TO_TWO_PI
@@ -81,12 +81,12 @@ class mat4(mat_base):
         self.v[10] = ca
         return self
 
-    def init_rotate_y(self, degree):
+    def set_rotate_y(self, degree):
         """
         Initializes the matrix with a rotation transform, INPLACE
         :param degree: degrees of rotation
         :return: self
-        >>> mat4().init_rotate_y(90).round()
+        >>> mat4().set_rotate_y(90).round()
         mat4(0,0,-1,0, 0,1,0,0, 1,0,0,0, 0,0,0,1)
         """
         degree *= const.DEG_TO_TWO_PI
@@ -99,12 +99,12 @@ class mat4(mat_base):
         self.v[10] = ca
         return self
 
-    def init_rotate_z(self, degree):
+    def set_rotate_z(self, degree):
         """
         Initializes the matrix with a rotation transform, INPLACE
         :param degree: degrees of rotation
         :return: self
-        >>> mat4().init_rotate_z(90).round()
+        >>> mat4().set_rotate_z(90).round()
         mat4(0,1,0,0, -1,0,0,0, 0,0,1,0, 0,0,0,1)
         """
         degree *= const.DEG_TO_TWO_PI
@@ -117,13 +117,13 @@ class mat4(mat_base):
         self.v[5] = ca
         return self
 
-    def init_rotate_axis(self, axis, degree):
+    def set_rotate_axis(self, axis, degree):
         """
         Initializes the matrix with a rotation transform, INPLACE
         :param axis: float sequence of length 3, must be normalized!
         :param degree: degrees of rotation
         :return: self
-        >>> mat4().init_rotate_axis((1,0,0), 90).round()
+        >>> mat4().set_rotate_axis((1,0,0), 90).round()
         mat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1)
         """
         tools.check_float_sequence(axis, 3)
@@ -174,7 +174,7 @@ class mat4(mat_base):
         >>> mat4().rotate_x(90).round()
         mat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1)
         """
-        m = mat4().init_rotate_x(degree)
+        m = mat4().set_rotate_x(degree)
         self._multiply_inplace(m)
         return self
 
@@ -186,7 +186,7 @@ class mat4(mat_base):
         >>> mat4().rotate_y(90).round()
         mat4(0,0,-1,0, 0,1,0,0, 1,0,0,0, 0,0,0,1)
         """
-        m = mat4().init_rotate_y(degree)
+        m = mat4().set_rotate_y(degree)
         self._multiply_inplace(m)
         return self
 
@@ -198,7 +198,7 @@ class mat4(mat_base):
         >>> mat4().rotate_z(90).round()
         mat4(0,1,0,0, -1,0,0,0, 0,0,1,0, 0,0,0,1)
         """
-        m = mat4().init_rotate_z(degree)
+        m = mat4().set_rotate_z(degree)
         self._multiply_inplace(m)
         return self
 
@@ -211,7 +211,7 @@ class mat4(mat_base):
         >>> mat4().rotate_axis((1,0,0), 90).round()
         mat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1)
         """
-        m = mat4().init_rotate_axis(axis, degree)
+        m = mat4().set_rotate_axis(axis, degree)
         self._multiply_inplace(m)
         return self
 

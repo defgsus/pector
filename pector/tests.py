@@ -1,4 +1,4 @@
-import math
+import math, random
 from unittest import TestCase
 from pector import vec2, vec3, mat3, mat4, quat
 
@@ -497,13 +497,13 @@ class TestMat3(TestCase):
         self.assertEqual(mat3(2) * (1,2,3), vec3(2,4,6))
 
     def test_set_rotate(self):
-        self.assertEqual((mat3().init_rotate_x(90) * (1, 2, 3)).round(), vec3((1, -3, 2)))
-        self.assertEqual((mat3().init_rotate_y(90) * (1, 2, 3)).round(), vec3((3, 2, -1)))
-        self.assertEqual((mat3().init_rotate_z(90) * (1, 2, 3)).round(), vec3((-2, 1, 3)))
+        self.assertEqual((mat3().set_rotate_x(90) * (1, 2, 3)).round(), vec3((1, -3, 2)))
+        self.assertEqual((mat3().set_rotate_y(90) * (1, 2, 3)).round(), vec3((3, 2, -1)))
+        self.assertEqual((mat3().set_rotate_z(90) * (1, 2, 3)).round(), vec3((-2, 1, 3)))
 
-        self.assertEqual((mat3().init_rotate_axis((1, 0, 0), 90) * (1, 2, 3)).round(), vec3((1, -3, 2)))
-        self.assertEqual((mat3().init_rotate_axis((0, 1, 0), 90) * (1, 2, 3)).round(), vec3((3, 2, -1)))
-        self.assertEqual((mat3().init_rotate_axis((0, 0, 1), 90) * (1, 2, 3)).round(), vec3((-2, 1, 3)))
+        self.assertEqual((mat3().set_rotate_axis((1, 0, 0), 90) * (1, 2, 3)).round(), vec3((1, -3, 2)))
+        self.assertEqual((mat3().set_rotate_axis((0, 1, 0), 90) * (1, 2, 3)).round(), vec3((3, 2, -1)))
+        self.assertEqual((mat3().set_rotate_axis((0, 0, 1), 90) * (1, 2, 3)).round(), vec3((-2, 1, 3)))
 
     def test_rotate(self):
         self.assertEqual( (mat3().rotate_x(90) * (1,2,3)).round(), vec3((1,-3,2)) )
@@ -665,13 +665,13 @@ class TestMat4(TestCase):
         self.assertEqual( (mat4().translate((1,2,3)).translate((1,2,3)) * (3,3,3)), (5,7,9) )
 
     def test_set_rotate(self):
-        self.assertEqual((mat4().init_rotate_x(90) * (1, 2, 3)).round(), vec3((1, -3, 2)))
-        self.assertEqual((mat4().init_rotate_y(90) * (1, 2, 3)).round(), vec3((3, 2, -1)))
-        self.assertEqual((mat4().init_rotate_z(90) * (1, 2, 3)).round(), vec3((-2, 1, 3)))
+        self.assertEqual((mat4().set_rotate_x(90) * (1, 2, 3)).round(), vec3((1, -3, 2)))
+        self.assertEqual((mat4().set_rotate_y(90) * (1, 2, 3)).round(), vec3((3, 2, -1)))
+        self.assertEqual((mat4().set_rotate_z(90) * (1, 2, 3)).round(), vec3((-2, 1, 3)))
 
-        self.assertEqual((mat4().init_rotate_axis((1, 0, 0), 90) * (1, 2, 3)).round(), vec3((1, -3, 2)))
-        self.assertEqual((mat4().init_rotate_axis((0, 1, 0), 90) * (1, 2, 3)).round(), vec3((3, 2, -1)))
-        self.assertEqual((mat4().init_rotate_axis((0, 0, 1), 90) * (1, 2, 3)).round(), vec3((-2, 1, 3)))
+        self.assertEqual((mat4().set_rotate_axis((1, 0, 0), 90) * (1, 2, 3)).round(), vec3((1, -3, 2)))
+        self.assertEqual((mat4().set_rotate_axis((0, 1, 0), 90) * (1, 2, 3)).round(), vec3((3, 2, -1)))
+        self.assertEqual((mat4().set_rotate_axis((0, 0, 1), 90) * (1, 2, 3)).round(), vec3((-2, 1, 3)))
 
     def test_rotate(self):
         self.assertEqual( (mat4().rotate_x(90) * (1,2,3)).round(), vec3((1,-3,2)) )
@@ -712,6 +712,7 @@ class TestMat4(TestCase):
 
 class TestQuat(TestCase):
     def setUp(self):
+        self.r = random.Random(23)
         pass
 
     def test_assignment(self):
@@ -803,36 +804,59 @@ class TestQuat(TestCase):
         with self.assertRaises(TypeError):
             quat().dot((1,2))
 
-    def compare_quat_mat(self, q, m):
-        self.assertEqual(q.rounded(4), m.as_quat().rounded(4))
-        self.assertEqual(q.as_mat3().rounded(4), m.rounded(4))
+    def _compare_quat_mat(self, q, m, prec=4):
+        self.assertEqual(q.rounded(prec), m.as_quat().rounded(prec))
+        self.assertEqual(q.as_mat3().rounded(prec), m.rounded(prec))
 
     def test_mat_conversion(self):
         self.assertEqual(quat(), mat3().as_quat())
-        self.compare_quat_mat( quat((1,0,0), -90), mat3().init_rotate_x(90.) )
-        import random
+        self._compare_quat_mat(quat((1,0,0), 90), mat3().set_rotate_x(90.))
+        self._compare_quat_mat(quat((0,1,0), 90), mat3().set_rotate_y(90.))
+        self._compare_quat_mat(quat((0,0,1), 90), mat3().set_rotate_z(90.))
         for i in range(100):
-            axis = vec3(random.gauss(0,1), random.gauss(0,1), random.gauss(0,1)).normalize()
-            deg = random.uniform(0, 180)
-            self.compare_quat_mat( quat(axis, -deg), mat3().init_rotate_axis(axis, deg) )
-            self.compare_quat_mat( quat(-axis, deg), mat3().init_rotate_axis(axis, deg) )
+            axis = vec3(self.r.gauss(0,1), self.r.gauss(0,1), self.r.gauss(0,1)).normalize()
+            deg = self.r.uniform(-119, 119)
+            self._compare_quat_mat(quat(axis, deg), mat3().set_rotate_axis(axis, deg))
+            self._compare_quat_mat(quat(-axis, deg), mat3().set_rotate_axis(-axis, deg) )
 
     def test_mat_conversion_concat(self):
-        import random
         for i in range(100):
             q = quat()
             m = mat3()
-            for j in range(5):
-                axis = vec3(random.gauss(0,1), random.gauss(0,1), random.gauss(0,1)).normalize()
-                deg = random.uniform(0, 180/5)
-                q.rotate_axis(axis, -deg)
-                m.rotate_axis(axis, deg)
-            self.compare_quat_mat( q, m )
+            for j in range(1):
+                axis = vec3(self.r.gauss(0,1), self.r.gauss(0,1), self.r.gauss(0,1)).normalize()
+                deg = self.r.uniform(-180/5, 180/5)
+                q.rotate_axis(axis, deg)
+                m.rotate_axis(axis, deg).round(3)
+                qm = q.as_mat3().round(3)
+                diff = abs(sum(qm - m))
+                if diff > .1:
+                    self.assertEqual(qm, m)
+                self.assertLess(diff, 0.1)
+            #self._compare_quat_mat( q, m, 8)
+
+    def _compare_mat3_quat_rotation(self, axis, deg):
+        self.assertEqual(mat3().set_rotate_axis(axis, deg).round(4),
+                         quat().set_rotate_axis(axis, deg).as_mat3().round(4))
 
     def test_rotate(self):
-        self.assertEqual(quat().init_rotate_axis((1,2,3), 4), quat((1,2,3),4))
-        self.assertEqual(mat3().init_rotate_axis((1,0,0), 0).round(),
-                         quat().init_rotate_axis((1,0,0), 0).as_mat3().round())
-        #self.assertEqual(mat3().init_rotate_axis((1,0,0), 90).round(),
-        #                 quat().init_rotate_axis((1,0,0), 90).as_mat3().round())
+        self.assertEqual(quat().set_rotate_axis((1,2,3), 4), quat((1, 2, 3), 4))
+        self.assertEqual(mat3().set_rotate_axis((1,0,0), 0).round(),
+                         quat().set_rotate_axis((1,0,0), 0).as_mat3().round())
+        self.assertEqual(mat3().set_rotate_axis((1,0,0), 90).round(),
+                         quat().set_rotate_axis((1,0,0), 90).as_mat3().round())
+        for i in range(100):
+            axis = vec3(self.r.gauss(0, 1), self.r.gauss(0, 1), self.r.gauss(0, 1)).normalize()
+            deg = self.r.uniform(-360, 360)
+            self._compare_mat3_quat_rotation(axis, deg)
 
+    def test_rotate_to(self):
+        self.assertEqual(quat().set_rotate_axis((1, 0, 0), 90), vec3(0, 0, -1).get_rotation_to((0, 1, 0)))
+        self.assertEqual(quat().set_rotate_axis((0, 1, 0), 90), vec3(0, 0, 1).get_rotation_to((1, 0, 0)))
+        self.assertEqual(quat().set_rotate_axis((0, 0, 1), 90), vec3(0, 1, 0).get_rotation_to((-1, 0, 0)))
+
+    def test_rotate_to_mat(self):
+        cur = vec3(0,1,0)
+        goal = vec3(1,0,0)
+        v = cur.get_rotation_to(goal).as_mat3() * cur
+        self.assertEqual(goal.rounded(3), v.rounded(3))

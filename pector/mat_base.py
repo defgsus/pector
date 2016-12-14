@@ -59,7 +59,7 @@ class mat_base(vec_base):
         if tools.is_number(arg):
             return self._binary_operator_inplace(arg, lambda l, r: l * r)
         tools.check_float_sequence(arg, len(self))
-        return self._multiply_inplace(self, arg)
+        return self._multiply_inplace(arg)
 
     # --- helper ---
 
@@ -96,6 +96,13 @@ class mat_base(vec_base):
         return self
 
     # ----- public API getter ------
+
+    def get(self, row, column):
+        """
+        Returns the element at given row and column
+        :return: float
+        """
+        return self.v[column * self.num_rows() + row]
 
     def trace(self):
         """

@@ -1,7 +1,6 @@
-import pyglet
-import pyshaders
+import pyglet, pyshaders, math
 from csg.glsl import render_glsl
-from pector import vec3, mat4
+from pector import vec3, mat4, quat
 
 
 
@@ -20,29 +19,50 @@ in vec4 v_pos;
 uniform vec2 u_resolution;
 uniform vec2 u_mouse_uv;
 uniform vec3 u_hit_pos;
+uniform vec3 u_light_pos;
 uniform mat4 u_transform;
-
+uniform mat4 u_light_trans;
 
 //float DE(in vec3 p) { return length(p)-1.; }
 %(DE)s
+#line 28
+float sdBox( vec3 p, vec3 b )
+{
+  vec3 d = abs(p) - b;
+  return min(max(d.x,max(d.y,d.z)),0.0) + length(max(d,0.0));
+}
+
+float DE_ship(in vec3 p)
+{
+    p = (u_light_trans * vec4(p, 1.)).xyz;
+    //p += vec3(0,0,-5);
+    float d = sdBox(p, vec3(0.5, 0.2, 1.));
+    d = min(d, sdBox(p, vec3(2., 0.2, 0.2)));
+    d = min(d, sdBox(p-vec3(0,0.4,.8), vec3(0.1, 0.2, 0.2)));
+    return d;
+}
+
+float DE1(in vec3 p) { return min(DE(p), DE_ship(p)); }
 
 vec3 DE_norm(in vec3 p)
 {
     vec2 e = vec2(0.001, 0.);
     return normalize(vec3(
-        DE(p + e.xyy) - DE(p - e.xyy),
-        DE(p + e.yxy) - DE(p - e.yxy),
-        DE(p + e.yyx) - DE(p - e.yyx) ));
+        DE1(p + e.xyy) - DE1(p - e.xyy),
+        DE1(p + e.yxy) - DE1(p - e.yxy),
+        DE1(p + e.yyx) - DE1(p - e.yyx) ));
 }
 
+vec3 light_acc;
 float sphere_trace(in vec3 ro, in vec3 rd)
 {
     float t = 0.;
     for (int i=0; i<150 && t < 100.; ++i)
     {
-        float d = DE(ro + rd * t);
+        float d = DE1(ro + rd * t);
         if (d < 0.001)
             return t;
+        light_acc += dot(rd, normalize(ro+rd*t - u_light_pos));
         t += d;
     }
     return -1.;
@@ -50,8 +70,8 @@ float sphere_trace(in vec3 ro, in vec3 rd)
 
 vec3 sky_c(in vec3 rd)
 {
-    return mix(vec3(0.5,.3,.1)*.5,
-               vec3(0.2,.5,.8)*.6, rd.y*.5+.5);
+    return mix(vec3(0.5,.3,.1)*.2,
+               vec3(0.2,.5,.8)*.3, rd.y*.5+.5);
 }
 
 vec3 light(in vec3 p, in vec3 n, in vec3 refl, in vec3 lp, in vec3 co)
@@ -76,6 +96,7 @@ vec3 render(in vec2 uv)
 {
     vec3 ro, rd, col=vec3(0);
     get_ray(uv, ro, rd);
+    light_acc = vec3(0);
     float t = sphere_trace(ro, rd);
 
     if (t < 0.)
@@ -88,12 +109,15 @@ vec3 render(in vec2 uv)
     col += sky_c(refl)*.3;
     col += (sky_c(rd)*.2+.4) * pow(max(0., dot(rd, refl)), 7.);
     col += light(po, n, refl, vec3(10,10,-3), vec3(.6,.7,1.));
-    col += light(po, n, refl, vec3(-2,-4,10), vec3(1,.7,.5));
+    col += light(po, n, refl, u_light_pos, vec3(1,.7,.5));
+
+    float l = max(0., dot(rd, normalize(ro-u_light_pos)));
+    col += pow(l,40.);
 
     col += smoothstep(.2,.0, length(po - u_hit_pos)) * vec3(0,1,1);
     col += light(po, n, refl, u_hit_pos, vec3(0,1,1)) * .4;
 
-    return sqrt(col);
+    return mix(col, sky_c(rd), smoothstep(3., 80., t));
 }
 
 void main()
@@ -111,9 +135,10 @@ void main()
     col = render(uv);
 #endif
     //col += smoothstep(0.02,0., length(uv - u_mouse_uv));
-    gl_FragColor = vec4(col,1);
+    gl_FragColor = vec4(sqrt(col),1);
 }
 """
+
 
 CITY_MAP = """
 #include <dh/hash>
@@ -250,6 +275,17 @@ class Spaceship:
         self.delta = 0.01
         self.reset()
         self.dist_field = dist_field
+        self.follower = []
+        self.second = 0.
+
+    def add_follower(self):
+        f = Spaceship(self.dist_field)
+        f.delta = self.delta
+        f.transform = self.transform.copy().translate((0,0,-10))
+        f.velocity = self.velocity.copy()
+        f.rotate = self.rotate.copy()
+        self.follower.append(f)
+
 
     def reset(self):
         self.transform = mat4()
@@ -257,6 +293,7 @@ class Spaceship:
         self.rotate = vec3(0)
 
     def integrate(self):
+        self.second += self.delta
         self.transform.translate(self.velocity * self.delta)
         self.transform.rotate_z((self.rotate.y * 12. +self.rotate.z*20.) * self.delta)
         self.transform.rotate_y(self.rotate.y * 20. * self.delta)
@@ -267,13 +304,44 @@ class Spaceship:
         self.velocity -= self.delta * self.velocity
         self.rotate -= self.delta * self.rotate
 
+        for f in self.follower:
+            f.delta = self.delta
+            f.follow( self.transform.translated((0,0,-10)).position() )
+            #f.cruise()
+            f.integrate()
+
+    def cruise(self):
+        t = self.second
+        self.rotate += self.delta * vec3(math.sin(t), math.sin(t*1.31), math.sin(t*.797))
+        self.velocity.z -= self.delta * 10.
+
+    def follow(self, pos):
+        d = pos - self.transform.position()
+        di = d.length()
+        if di < 0.01:
+            return
+        d.normalize_safe()
+        fwd = self.transform.position_cleared() * vec3(0,0,-1)
+        q = fwd.get_rotation_to(d)
+        #q = (q+.9*(quat()-q)).normalize()
+        #print(fwd, d, q)
+        m4 = q.as_mat4()
+        #q.inverse()
+        self.transform *= m4
+        self.velocity.z -= 2.*self.delta
+        #d = self.transform.position_cleared().inversed_simple().transposed() * d
+        #self.velocity += self.delta * d  # * max(0,di/10.)
+
+
     def collide(self):
         p = self.transform.copy().translate(self.velocity * self.delta).position()
         d = self.dist_field.get_distance(p)
         if d < 0.0:
+            self.transform.translate(-d*1.1 * self.dist_field.get_normal(p))
             n = self.dist_field.get_normal(p)
-            self.transform.reflect(n).rotate_z(180)
+            self.velocity.reflect(n)
 
+            #self.transform.reflect(n).rotate_z(180)
 
     def check_keys(self, keys):
         amt = self.delta * 4
@@ -282,9 +350,9 @@ class Spaceship:
         if keys[pyglet.window.key.S]:
             self.velocity.z += amt * max(1.,min(8., 1.+.2*self.velocity.z))
         if keys[pyglet.window.key.A]:
-            self.velocity.x -= amt
+            self.velocity.x -= amt * max(1.,min(8., 1.-.2*self.velocity.x))
         if keys[pyglet.window.key.D]:
-            self.velocity.x += amt
+            self.velocity.x += amt * max(1.,min(8., 1.+.2*self.velocity.x))
         if keys[pyglet.window.key.Q]:
             self.rotate.z += amt
         if keys[pyglet.window.key.E]:
@@ -303,7 +371,7 @@ class Spaceship:
 class RenderWindow(pyglet.window.Window):
 
     def __init__(self, dist_field):
-        super(RenderWindow, self).__init__(width=640, height=480, resizable=True,
+        super(RenderWindow, self).__init__(width=480, height=320, resizable=True,
                                            vsync=True)
         self.shader = None
         self.dist_field = dist_field
@@ -314,6 +382,7 @@ class RenderWindow(pyglet.window.Window):
         self.spaceship = Spaceship(self.dist_field)
         self.spaceship.transform = self.transform
         self.spaceship.delta = 1.
+        self.spaceship.add_follower()
         self.keys = pyglet.window.key.KeyStateHandler()
         self.push_handlers(self.keys)
 
@@ -347,6 +416,7 @@ class RenderWindow(pyglet.window.Window):
         self.clear()
         if not self.shader:
             self.compile()
+
         if "u_resolution" in self.shader.uniforms:
             self.shader.uniforms.u_resolution = (self.width, self.height)
         if "u_mouse_uv" in self.shader.uniforms:
@@ -355,6 +425,12 @@ class RenderWindow(pyglet.window.Window):
             self.shader.uniforms.u_hit_pos = tuple(self.hit_pos)
         if "u_transform" in self.shader.uniforms:
             self.shader.uniforms.u_transform = self.transform.as_list_list(row_major=True)
+        if self.spaceship.follower:
+            if "u_light_pos" in self.shader.uniforms:
+                self.shader.uniforms.u_light_pos = tuple(self.spaceship.follower[0].transform.position())
+            if "u_light_trans" in self.shader.uniforms and self.spaceship.follower:
+                self.shader.uniforms.u_light_trans = self.spaceship.follower[0].transform.inversed_simple().as_list_list(row_major=True)
+
         pyglet.graphics.draw(6, pyglet.gl.GL_TRIANGLES,
                              ('v2f', (-1,-1, 1,-1, -1,1
                                       ,1,-1, 1,1, -1,1))#(0,0, window.width,0, 0,window.height,

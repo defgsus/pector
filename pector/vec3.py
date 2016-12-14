@@ -41,6 +41,36 @@ class vec3(vec_base):
     def __len__(self):
         return 3
 
+    # ------- getter -------
+
+    def get_rotation_to(self, axis, fallback=None):
+        """
+        Returns a quaternion with the rotation needed to
+        rotate this vector to align with axis.
+        :param axis: float sequence of length 3, must be normalised
+        :return: quat
+        """
+        from .quat import quat
+        v0 = self.normalized_safe()
+        d = v0.dot(axis)
+        if d >= 1.:
+            return quat()
+        elif d < -0.999999:
+            if fallback:
+                return quat(fallback, 180.)
+            else:
+                ax = vec3(1,0,0).cross(v0)
+                if ax.length_squared() < 0.00001:
+                    ax = vec3(0,1,0).cross(v0)
+                ax.normalize()
+                return quat(ax, 180.)
+        else:
+            s = math.sqrt((1.+d) * 2.)
+            invs = 1. / s
+            c = v0.cross(axis)
+            return quat(c.x * invs, c.y * invs, c.z * invs, s * .5).normalized()
+
+
     # ------ inplace methods -------
 
     def cross(self, arg3):
