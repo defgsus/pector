@@ -5,8 +5,9 @@ from pector import vec3, mat4, quat
 
 
 vert_src = """
+#version 130
 in vec4 pos;
-varying vec4 v_pos;
+out vec4 v_pos;
 void main()
 {
     v_pos = pos;
@@ -15,6 +16,7 @@ void main()
 """
 
 frag_src = """
+#version 130
 in vec4 v_pos;
 uniform vec2 u_resolution;
 uniform vec2 u_mouse_uv;
@@ -24,7 +26,7 @@ uniform mat4 u_ship1;
 uniform mat4 u_ship1_i;
 
 %(DE)s
-#line 27
+#line 29
 
 vec3 ship1_pos = (u_ship1 * vec4(0,-.5,-2,1)).xyz;
 
@@ -284,10 +286,13 @@ float DE_shadow(in vec3 ro, in vec3 rd, float maxt, int k = 8., int steps = 20)
 class Spaceship:
     def __init__(self, dist_field):
         self.delta = 0.01
-        self.reset()
         self.dist_field = dist_field
         self.follower = []
         self.second = 0.
+        self.transform = mat4()
+        self.velocity = vec3(0)
+        self.rotate = vec3(0)
+        self.reset()
 
     def add_follower(self):
         f = Spaceship(self.dist_field)
@@ -296,7 +301,6 @@ class Spaceship:
         f.velocity = self.velocity.copy()
         f.rotate = self.rotate.copy()
         self.follower.append(f)
-
 
     def reset(self):
         self.transform = mat4()
@@ -336,15 +340,14 @@ class Spaceship:
         adjust = max(0.,min(1., (di-2.)/40.)) * 10.
         q = quat().lerp(q, self.delta*adjust).normalize()
         self.transform *= q.as_mat4()
-        self.velocity.z -= self.delta * max(1.,-d.z * 10. -self.velocity.z*.5)
-
+        self.velocity.z -= self.delta * max(1., -d.z * 10. -self.velocity.z * .5)
 
     def collide(self):
         p = self.transform.copy().translate(self.velocity * self.delta).position()
         d = self.dist_field.get_distance(p)
         if d < 0.0:
-            self.transform.translate(-d*1.1 * self.dist_field.get_normal(p))
             n = self.dist_field.get_normal(p)
+            self.transform = mat4().translate(-d*1.1 * n) * self.transform
             self.velocity.reflect(n)
 
             #self.transform.reflect(n).rotate_z(180)

@@ -130,14 +130,14 @@ class quat(vec_base):
             return self._binary_operator(float(other), lambda l, r: l * r)
         tools.check_float_sequence(other)
         q = quat()
-        # q.x = self.w * other[0] - self.x * other[3] - self.y * other[2] - self.z * other[1]
-        # q.y = self.w * other[1] + self.x * other[2] + self.y * other[3] - self.z * other[0]
-        # q.z = self.w * other[2] - self.x * other[1] + self.y * other[0] + self.z * other[3]
-        # q.w = self.w * other[3] + self.x * other[0] - self.y * other[1] + self.z * other[2]
-        q.w = self.w * float(other[3]) - self.x * float(other[0]) - self.y * float(other[1]) - self.z * float(other[2])
+        #q.x = self.w * other[0] - self.x * other[3] - self.y * other[2] - self.z * other[1]
+        #q.y = self.w * other[1] + self.x * other[2] + self.y * other[3] - self.z * other[0]
+        #q.z = self.w * other[2] - self.x * other[1] + self.y * other[0] + self.z * other[3]
+        #q.w = self.w * other[3] + self.x * other[0] - self.y * other[1] + self.z * other[2]
         q.x = self.x * float(other[3]) + self.w * float(other[0]) + self.y * float(other[2]) - self.z * float(other[1])
         q.y = self.w * float(other[1]) - self.x * float(other[2]) + self.y * float(other[3]) + self.z * float(other[0])
         q.z = self.w * float(other[2]) + self.x * float(other[1]) - self.y * float(other[0]) + self.z * float(other[3])
+        q.w = self.w * float(other[3]) - self.x * float(other[0]) - self.y * float(other[1]) - self.z * float(other[2])
         return q
 
     def __rmul__(self, other):

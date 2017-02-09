@@ -828,17 +828,22 @@ class TestQuat(TestCase):
                 axis = vec3(self.r.gauss(0,1), self.r.gauss(0,1), self.r.gauss(0,1)).normalize()
                 deg = self.r.uniform(-180/5, 180/5)
                 q.rotate_axis(axis, deg)
-                m.rotate_axis(axis, deg).round(3)
+                m.rotate_axis(axis, deg)
                 qm = q.as_mat3().round(3)
-                diff = abs(sum(qm - m))
+                mm = m.rounded(3)
+                diff = abs(sum(qm - mm))
                 if diff > .1:
-                    self.assertEqual(qm, m)
+                    self.assertEqual(qm, mm)
                 self.assertLess(diff, 0.1)
             #self._compare_quat_mat( q, m, 8)
 
     def _compare_mat3_quat_rotation(self, axis, deg):
         self.assertEqual(mat3().set_rotate_axis(axis, deg).round(4),
                          quat().set_rotate_axis(axis, deg).as_mat3().round(4))
+        self.assertEqual(mat3().set_rotate_axis(axis, deg).round(4),
+                         (mat3() * quat().set_rotate_axis(axis, deg)).round(4))
+        self.assertEqual(mat3().set_rotate_axis(axis, deg).rotate_axis(axis,deg).round(4),
+                         (mat3() * quat().set_rotate_axis(axis, deg).rotate_axis(axis, deg)).round(4))
 
     def test_rotate(self):
         self.assertEqual(quat().set_rotate_axis((1,2,3), 4), quat((1, 2, 3), 4))

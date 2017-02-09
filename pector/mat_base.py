@@ -64,11 +64,24 @@ class mat_base(vec_base):
     # --- helper ---
 
     def _multiply(self, l, r):
+        """One big multiply implementation for all derived types
+        The code should be spread to the derived classes
+        but it was convenient to write it all in one place"""
+        from .quat import quat
         # mat * mat
         if len(l) == len(self) == len(r):
             m = self.__class__(l)
             m._multiply_inplace(r)
             return m
+        elif isinstance(r, quat):
+            # mat3 * quat
+            if len(l) == 9:
+                return l * r.as_mat3()
+            # mat4 * quat
+            elif len(l) == 16:
+                return l * r.as_mat4()
+            else:
+                raise TypeError("Can not multiply %s and quat" % (type(l)))
         # mat4 * vec3
         elif len(l) == 16 and len(r) == 3:
             return vec3.vec3(
