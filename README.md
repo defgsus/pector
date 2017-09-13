@@ -1,5 +1,5 @@
 # pector
-simple python vector/matrix lib with focus on 3d geometry
+simple python 3 vector/matrix lib with focus on 3d geometry
 
 Every once and then a programmer should learn a new language and reimplement old stuff using new paradigms.
 If just for the sake of fascination.
@@ -9,12 +9,13 @@ namely the functional wrappers for pythagorean manipulation of position and tran
 
 ### rationale ###
 
-In an embedded python, inside an audio-visual framework in C++, i want to give the user intuitive, simply and fast
-vector/matrix/transformation-handling types to interface with the main app. All in a GLSL-like fashion.
+In an embedded python, inside an audio-visual framework in C++, i want to give the user intuitive, simple and fast
+vector/matrix/transformation-handling types to interface with the main app. All in a GLSL-like fashion,
+extended with inbuilt rotation and all that nifty stuff.
 From my point of view, there is no common, simple vector/matrix lib for python except numpy,
-which i do not want to depend on, and which does not handle vec3 and vec4 any special.
-There are numerous little libs like this one, though. Be recreating the wheel,
-i just want to get familiar with python in general.
+which i do not want to depend on, and which does not handle vec3 and vec4 in any special way.
+There are numerous little libs like this one, though. By recreating the wheel i just want to get familiar
+with python in general.
 
 Once the interface is settled, i hope it's possible to compile the lib with Cython
 or any other tool that creates the C/Python function wrappers,
@@ -28,14 +29,16 @@ but which is hard to sustain and doesn't teach me good python after all.
 
 ### current state ###
 
-*vec3* is almost ready and *mat4* is implemented in basic. 
+*vec3* is almost ready and *mat4* is implemented in basic. *quat* is added as well.
 I want to do some practical stuff to see if the interface works out
 
-The csg package contained in this repo is one little project using the lib  
+The csg package contained in this repo is one little project using the lib. Start *run_csg.py* for an interactive
+sphere-tracing 'game'. The distance-function for the shader is created using CSG-type classes that can estimate
+distances in python as well, making it possible to 'collide' with the environment.
  
 ### desired ###
 
-finally package should contain:
+final package should contain:
 - vec2, vec3, vec4, mat3, mat4, quat
 - all kinds of rotations, transformations, projections, frustums, etc...
 - non-member funcs like:

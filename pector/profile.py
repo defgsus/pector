@@ -1,4 +1,4 @@
-from vec3 import vec3
+from .vec3 import vec3
 import random
 
 def rnd_vec3(mi=-1., ma=1.):
