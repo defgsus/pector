@@ -234,7 +234,7 @@ def csg_7():
     o = Fan(o, axis=0, angle=(0, 60))
     return o
 
-c = csg_6()
+c = csg_5()
 #print( csg.glsl.render_glsl(c) )
 #render(c)
 csg_shader_window.render_csg(c)
