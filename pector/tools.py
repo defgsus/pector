@@ -7,6 +7,7 @@ def is_number(arg):
     except:
         return False
 
+
 def is_float_sequence(arg):
     if isinstance(arg, dict):
         return False
@@ -16,6 +17,7 @@ def is_float_sequence(arg):
         return True
     except:
         return False
+
 
 def check_float_number(arg):
     try:

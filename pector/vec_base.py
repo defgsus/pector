@@ -1,8 +1,10 @@
 import math
-from pector import tools, const
+from . import tools, const
 
 """
-Abstract base class for vectors and matrices"""
+Abstract base class for vectors and matrices
+"""
+
 
 class vec_base:
     """
@@ -19,11 +21,11 @@ class vec_base:
             return
         self.set(*arg)
 
-    def __unicode__(self):
+    def __str__(self):
         return "vec_base(len=%d)" % len(self)
 
     def __repr__(self):
-        return self.__unicode__()
+        return self.__str__()
 
     # --- list-like ---
 

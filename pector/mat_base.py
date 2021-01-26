@@ -1,5 +1,8 @@
 # import math
-from pector import tools, vec_base, vec3
+from . import tools
+from .vec_base import vec_base
+from .vec3 import vec3
+
 
 class mat_base(vec_base):
     """
@@ -8,7 +11,7 @@ class mat_base(vec_base):
     def __init__(self, *arg):
         self.set(*arg)
 
-    def __unicode__(self):
+    def __str__(self):
         r = "%s(" % self.__class__.__name__
         for i, x in enumerate(self.v):
             r += "%g" % x
@@ -84,13 +87,13 @@ class mat_base(vec_base):
                 raise TypeError("Can not multiply %s and quat" % (type(l)))
         # mat4 * vec3
         elif len(l) == 16 and len(r) == 3:
-            return vec3.vec3(
+            return vec3(
                 l[0] * r[0] + l[4] * r[1] + l[8 ] * r[2] + l[12],
                 l[1] * r[0] + l[5] * r[1] + l[9 ] * r[2] + l[13],
                 l[2] * r[0] + l[6] * r[1] + l[10] * r[2] + l[14] )
         # mat3 * vec3
         elif len(l) == 9 and len(r) == 3:
-            return vec3.vec3(
+            return vec3(
                 l[0] * r[0] + l[3] * r[1] + l[6] * r[2] ,
                 l[1] * r[0] + l[4] * r[1] + l[7] * r[2] ,
                 l[2] * r[0] + l[5] * r[1] + l[8] * r[2] )

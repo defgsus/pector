@@ -1,5 +1,6 @@
 import math
-from pector import tools, const, mat_base
+from . import tools, const
+from .mat_base import mat_base
 
 
 class mat3(mat_base):

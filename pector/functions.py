@@ -1,4 +1,4 @@
-import tools
+from . import tools
 
 
 def dot(v1, v2):

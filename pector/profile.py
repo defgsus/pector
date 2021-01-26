@@ -1,10 +1,12 @@
-from .vec3 import vec3
 import random
+from .vec3 import vec3
+
 
 def rnd_vec3(mi=-1., ma=1.):
     return vec3((random.uniform(mi, ma),
                  random.uniform(mi, ma),
                  random.uniform(mi, ma)))
+
 
 def nbody_case(nbodies, nframes):
     pos = [rnd_vec3() for i in range(nbodies)]

@@ -1,5 +1,8 @@
 import math
-from pector import vec_base, tools, const
+
+from . import tools, const
+from .vec_base import vec_base
+
 
 class vec2(vec_base):
     """
@@ -10,7 +13,7 @@ class vec2(vec_base):
     typically of length 2 as well.
     """
 
-    def __unicode__(self):
+    def __str__(self):
         return "vec2(%g, %g)" % (self.v[0], self.v[1])
 
     # ---- x,y,z properties ----

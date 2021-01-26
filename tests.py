@@ -1,5 +1,7 @@
-import math, random
+import math
+import random
 from unittest import TestCase
+
 from pector import vec2, vec3, mat3, mat4, quat
 
 
@@ -515,12 +517,12 @@ class TestMat3(TestCase):
 
     def test_compare_rotate_vec(self):
         v = vec3((1,2,3))
-        self.assertAlmostEquals( mat3().rotate_x(90) * v, v.rotated_x(90) )
-        self.assertAlmostEquals( mat3().rotate_y(90) * v, v.rotated_y(90) )
-        self.assertAlmostEquals( mat3().rotate_z(90) * v, v.rotated_z(90) )
+        self.assertAlmostEqual( mat3().rotate_x(90) * v, v.rotated_x(90) )
+        self.assertAlmostEqual( mat3().rotate_y(90) * v, v.rotated_y(90) )
+        self.assertAlmostEqual( mat3().rotate_z(90) * v, v.rotated_z(90) )
 
-        self.assertAlmostEquals( mat3().rotate_y(-90).rotate_z(90) * v, v.rotated_z(90).rotated_y(-90) )
-        self.assertAlmostEquals( mat3().rotate_x(90).rotate_y(-90).rotate_z(90) * v,
+        self.assertAlmostEqual( mat3().rotate_y(-90).rotate_z(90) * v, v.rotated_z(90).rotated_y(-90) )
+        self.assertAlmostEqual( mat3().rotate_x(90).rotate_y(-90).rotate_z(90) * v,
                                      v.rotated_z(90).rotated_y(-90).rotated_x(90) )
 
     def test_scale(self):
@@ -683,12 +685,12 @@ class TestMat4(TestCase):
 
     def test_compare_rotate_vec(self):
         v = vec3((1,2,3))
-        self.assertAlmostEquals( mat4().rotate_x(90) * v, v.rotated_x(90) )
-        self.assertAlmostEquals( mat4().rotate_y(90) * v, v.rotated_y(90) )
-        self.assertAlmostEquals( mat4().rotate_z(90) * v, v.rotated_z(90) )
+        self.assertAlmostEqual( mat4().rotate_x(90) * v, v.rotated_x(90) )
+        self.assertAlmostEqual( mat4().rotate_y(90) * v, v.rotated_y(90) )
+        self.assertAlmostEqual( mat4().rotate_z(90) * v, v.rotated_z(90) )
 
-        self.assertAlmostEquals( mat4().rotate_y(-90).rotate_z(90) * v, v.rotated_z(90).rotated_y(-90) )
-        self.assertAlmostEquals( mat4().rotate_x(90).rotate_y(-90).rotate_z(90) * v,
+        self.assertAlmostEqual( mat4().rotate_y(-90).rotate_z(90) * v, v.rotated_z(90).rotated_y(-90) )
+        self.assertAlmostEqual( mat4().rotate_x(90).rotate_y(-90).rotate_z(90) * v,
                                      v.rotated_z(90).rotated_y(-90).rotated_x(90) )
 
     def test_scale(self):
@@ -795,9 +797,9 @@ class TestQuat(TestCase):
         self.assertEqual((0, 0, -1, 0), quat(-0.49, -0.5, -0.51, 0).rounded())
 
     def test_length(self):
-        self.assertAlmostEquals(1., quat(1,0,0,0).length())
-        self.assertAlmostEquals(math.sqrt(2.), quat(1,1,0,0).length())
-        self.assertAlmostEquals(1., quat(1,2,3,4).normalized().length())
+        self.assertAlmostEqual(1., quat(1,0,0,0).length())
+        self.assertAlmostEqual(math.sqrt(2.), quat(1,1,0,0).length())
+        self.assertAlmostEqual(1., quat(1,2,3,4).normalized().length())
 
     def test_dot(self):
         self.assertEqual(60, quat(1,2,3,4).dot((4,5,6,7)))

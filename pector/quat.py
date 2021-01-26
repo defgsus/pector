@@ -1,11 +1,14 @@
 import math
-from pector import vec_base, tools, const
+from . import tools, const
+from .vec_base import vec_base
+
 
 # some refs:
 # https://bitbucket.org/sinbad/ogre
 # http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/index.htm
 # https://en.wikipedia.org/wiki/Rotation_matrix#Quaternion
 # http://www.cprogramming.com/tutorial/3d/quaternions.html
+
 
 class quat(vec_base):
     """
@@ -20,7 +23,7 @@ class quat(vec_base):
         if arg:
             self.set(*arg)
 
-    def __unicode__(self):
+    def __str__(self):
         return "quat(%g, %g, %g, %g)" % (self.v[0], self.v[1], self.v[2], self.v[3])
 
     def __len__(self):
